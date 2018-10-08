@@ -2,6 +2,12 @@
 //var basePath;
 //var prefix;
 
+if(!String.prototype.startsWith){
+    String.prototype.startsWith = function(prefix){
+        return this.lastIndexOf(prefix, 0) === 0;
+    }
+}
+
 var kanbanApp = new Vue({
     el: "#kanban-app",
 
