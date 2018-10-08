@@ -10,7 +10,8 @@ class Plugin extends gitbucket.core.plugin.Plugin {
   override val pluginName: String = "Label Kanban Plugin"
   override val description: String = "GitBucket plug-in"
   override val versions: List[Version] = List(
-    new Version("1.0.0")
+    new Version("1.0.0"),
+    new Version("1.0.1"),
   )
 
   override val controllers = Seq(
