@@ -20,7 +20,7 @@ Plugin version|GitBucket version
 
 `$ sbt package`
 
-## usage
+## Usage
 
 ![labelList](./doc/labels.png)
 
