@@ -1,7 +1,7 @@
 # gitbucket-label-kanban-plugin
 
 A [GitBucket](https://github.com/gitbucket/gitbucket) plugin for Kanban style issue management.  
-The columns are labels with prefix "@".   
+The columns are labels prefixed "@".   
 
 ![Screenshot](./doc/screenshot.png)
 
@@ -24,7 +24,7 @@ Plugin version|GitBucket version
 
 ![labelList](./doc/labels.png)
 
-1. Add label(s) with prefix "@".
+1. Add label(s) prefixed "@".
 1. Move to Kanban page.
-1. Drag Issues to another column.
+1. Drag Issue to another column.
 
