@@ -1,0 +1,38 @@
+.kanban-column{
+    float:left;
+    margin:1%;
+}
+
+.kanban-column-header{
+    border-top:solid 7px;
+    font-size: 120%;
+}
+
+.kanban-issue-header{
+    font-size: 100%;
+}
+.kanban-issue-header .text-muted{
+    font-size: 90%;
+}
+
+.kanban-expand-enter-active,
+.kanban-expand-leave-active {
+    transition: all 0.2s;
+    overflow: hidden;
+}
+
+.kanban-expand-enter,
+.kanban-expand-leave-to {
+    transform: translateY(-10px);
+    position: relative;
+    height: 0 !important;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.kanban-comment{
+    margin-bottom: 10px;
+    border-left :solid 2px silver;
+    padding-left: 8px;
+}

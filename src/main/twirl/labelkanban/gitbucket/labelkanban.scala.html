@@ -1,0 +1,64 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+labelPrefix:String
+)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@import java.util.{Date,Calendar}
+@import gitbucket.core.model.{Issue,IssueComment}
+@import scala.collection.mutable.ListBuffer
+@import gitbucket.core.view.helpers
+
+@gitbucket.core.html.main("Kanban", Some(repository)) {
+@gitbucket.core.html.menu("labellanban", repository) {
+<script>
+    var cssPath = "@context.path/plugin-assets/labelkanban/plugin-labelkanban.css";
+
+    $("<link />")
+        .attr("rel", "stylesheet")
+        .attr("type", "text/css")
+        .attr("href", cssPath)
+        .appendTo("head");
+</script>
+<div id="kanban-app">
+    <div>
+        <div v-if="message!=''" class="alert alert-danger">
+            <strong>Error : </strong>
+            <span>{{message}}</span>
+        </div>
+        <div class="kanban-column panel panel-default" v-for="label in labels" @@dragover="dragover(label)" @@dragenter="dragenter()"
+            v-bind:style="{width:getColWidth()}" dropzone="move">
+            <div class="kanban-column-header panel-heading" v-bind:style="getLabelHeaderStyle(label)">
+                {{label.name || "No label"}}
+            </div>
+            <div class="kanbal-column-body panel-body" v-bind:style="getLabelStyle(label)">
+                <div class="issue panel panel-default" v-for="issue in getIssues(label)" draggable="true" @@dragstart="dragstart(issue, $event)"
+                    @@dragend="dragend">
+                    <div class="kanban-issue-header panel-heading">
+                        <a v-bind:href="issue.html_url">{{issue.title}} <span class="text-muted">#{{issue.number}}</span></a>
+                        <a href="#" class="kanban-expand-button pull-right text-muted" v-on:click="showComments(issue)">
+                            <span v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
+                        </a>
+                    </div>
+                    <transition-group name="kanban-expand">
+                        <div v-if="issue.show" v-bind:key="issue.number" class="panel-body kanban-expand-item">
+                            <div class="kanban-comment">{{issue.body}}</div>
+                            <div class="kanban-comment" v-if="issue.comments" v-for="comment in issue.comments">
+                                {{comment.body}}
+                            </div>
+                        </div>
+                    </transition-group>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // var basePath = "http://localhost:8080/api/v3/repos/root/test/";
+    var basePath = "@context.path/api/v3/repos/@repository.owner/@repository.name/";
+    var prefix = "@labelPrefix";
+</script>
+<script src="@context.path/plugin-assets/labelkanban/vue.min.js"></script>
+<script src="@context.path/plugin-assets/labelkanban/plugin-labelkanban.js"></script>
+
+}
+}
