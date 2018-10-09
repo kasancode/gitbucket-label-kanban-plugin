@@ -3,6 +3,7 @@ import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.plugin.{Link, PluginRegistry}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
+import gitbucket.core.view.helpers
 import io.github.gitbucket.labelkanban.controller.TagKanbanController
 
 class Plugin extends gitbucket.core.plugin.Plugin {
@@ -21,6 +22,6 @@ class Plugin extends gitbucket.core.plugin.Plugin {
   override val assetsMappings = Seq("/labelkanban" -> "/plugins/labelkanban/assets")
 
   override val repositoryMenus = Seq(
-    (repositoryInfo: RepositoryInfo, context: Context) => Some(Link("labelkanban", "Kanban", "/labalkanban/@", Some("inbox")))
+    (repositoryInfo: RepositoryInfo, context: Context) => Some(Link("labelkanban", "Kanban", "/labalkanban/" + helpers.urlEncode("@"), Some("inbox")))
   )
 }
