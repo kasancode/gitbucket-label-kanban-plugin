@@ -168,7 +168,7 @@ var kanbanApp = new Vue({
                     oldLabel = issue.labels[i];
 
                     $.ajax({
-                        url: labelUrl + "delete/" + oldLabel.name,
+                        url: labelUrl + "delete/" + encodeURIComponent(oldLabel.name),
                         type: "POST"
                     })
                         .fail(this.ajaxFial);
@@ -180,7 +180,7 @@ var kanbanApp = new Vue({
 
             if (label && label.name) {
                 $.ajax({
-                    url: labelUrl + "new/" + label.name,
+                    url: labelUrl + "new/" + encodeURIComponent(label.name),
                     type: "POST"
                 })
                     .fail(this.ajaxFial);

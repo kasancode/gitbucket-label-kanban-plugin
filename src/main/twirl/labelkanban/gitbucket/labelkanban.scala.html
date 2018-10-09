@@ -53,8 +53,8 @@ labelPrefix:String
     </div>
 </div>
 <script>
-    // var basePath = "http://localhost:8080/api/v3/repos/root/test/";
-    var basePath = "@context.path/api/v3/repos/@repository.owner/@repository.name/";
+    var htmlBasePath = "@context.path/@helpers.urlEncode(repository.owner)/@helpers.urlEncode(repository.name)/";
+    var basePath = "@context.path/api/v3/repos/@helpers.urlEncode(repository.owner)/@helpers.urlEncode(repository.name)/";
     var prefix = "@labelPrefix";
 </script>
 <script src="@context.path/plugin-assets/labelkanban/vue.min.js"></script>
