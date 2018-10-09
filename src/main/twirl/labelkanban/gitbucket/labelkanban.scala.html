@@ -28,7 +28,7 @@ labelPrefix:String
         <div class="kanban-column panel panel-default" v-for="label in labels" @@dragover="dragover(label)" @@dragenter="dragenter()"
             v-bind:style="{width:getColWidth()}" dropzone="move">
             <div class="kanban-column-header panel-heading" v-bind:style="getLabelHeaderStyle(label)">
-                {{label.name || "No label"}}
+                <a v-bind:href="getLabelUrl(label)">{{label.name || "No label"}}</a>
             </div>
             <div class="kanbal-column-body panel-body" v-bind:style="getLabelStyle(label)">
                 <div class="issue panel panel-default" v-for="issue in getIssues(label)" draggable="true" @@dragstart="dragstart(issue, $event)"

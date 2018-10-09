@@ -1,4 +1,5 @@
 
+//var htmlBasePath;
 //var basePath;
 //var prefix;
 
@@ -52,6 +53,10 @@ var kanbanApp = new Vue({
         getColWidth: function () {
             var width = (100 - 2) / this.labels.length - 2;
             return Math.round(width) + "%"
+        }
+        ,
+        getLabelUrl: function(label){
+            return htmlBasePath + "issues?labels=" + encodeURIComponent(label.name);
         }
     }
     ,
