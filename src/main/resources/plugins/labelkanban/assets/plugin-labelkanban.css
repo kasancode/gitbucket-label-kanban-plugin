@@ -7,9 +7,15 @@
     border-top:solid 7px;
     font-size: 120%;
 }
+.kanban-column-header a{
+    color:#333;
+}
 
 .kanban-issue-header{
     font-size: 100%;
+}
+.kanban-issue-header a{
+    color:#333;
 }
 .kanban-issue-header .text-muted{
     font-size: 90%;
