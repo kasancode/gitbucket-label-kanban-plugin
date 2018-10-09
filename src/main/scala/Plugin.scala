@@ -13,6 +13,7 @@ class Plugin extends gitbucket.core.plugin.Plugin {
   override val versions: List[Version] = List(
     new Version("1.0.0"),
     new Version("1.0.1"),
+    new Version("1.0.2"),
   )
 
   override val controllers = Seq(
