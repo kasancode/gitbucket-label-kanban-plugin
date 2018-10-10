@@ -1,3 +1,7 @@
+[v-cloak]{
+    display: none;
+}
+
 .kanban-column{
     float:left;
     margin:1%;
@@ -37,8 +41,14 @@
     padding-bottom: 0;
 }
 
+.kanban-expand-button{
+    cursor: pointer;
+}
+
 .kanban-comment{
     margin-bottom: 10px;
     border-left :solid 2px silver;
     padding-left: 8px;
+    overflow: hidden;
+	text-overflow: ellipsis;
 }

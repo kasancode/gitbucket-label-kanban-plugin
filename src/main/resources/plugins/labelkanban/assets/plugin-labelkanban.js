@@ -62,11 +62,13 @@ var kanbanApp = new Vue({
     ,
     methods: {
         /**
-         * @param {issue} item
+         * @param {issue} issue
          * @param {DragEvent} e
          */
-        dragstart: function (item, e) {
-            this.draggingItem = item
+        dragstart: function (issue, e) {
+            if(!issue || !issue.title) return;
+
+            this.draggingItem = issue
             e.target.style.opacity = 0.5;
         }
         ,
@@ -83,7 +85,9 @@ var kanbanApp = new Vue({
         /**
          * @returns {boolean}
          */
-        dragenter: function () {
+        dragenter: function (label) {
+            if(!this.draggingItem) return;
+
             event.preventDefault();
         }
         ,
@@ -91,6 +95,8 @@ var kanbanApp = new Vue({
          * @param {label} label
          */
         dragover: function (label) {
+            if(!this.draggingItem) return;
+
             this.targetLabel = label;
             event.preventDefault();
         }
@@ -129,7 +135,7 @@ var kanbanApp = new Vue({
         ,
         loadIssues: function () {
             $.ajax({
-                url: basePath + 'issues/',
+                url: basePath + 'issues?state=open',
                 dataType: 'json'
             })
                 .done(function (data) {

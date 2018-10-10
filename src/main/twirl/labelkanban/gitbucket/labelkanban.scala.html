@@ -20,24 +20,24 @@ labelPrefix:String
         .appendTo("head");
 </script>
 <div id="kanban-app">
-    <div>
+    <div v-cloak>
         <div v-if="message!=''" class="alert alert-danger">
             <strong>Error : </strong>
             <span>{{message}}</span>
         </div>
-        <div class="kanban-column panel panel-default" v-for="label in labels" @@dragover="dragover(label)" @@dragenter="dragenter()"
-            v-bind:style="{width:getColWidth()}" dropzone="move">
+        <div class="kanban-column panel panel-default" v-for="label in labels" v-bind:style="{width:getColWidth()}">
             <div class="kanban-column-header panel-heading" v-bind:style="getLabelHeaderStyle(label)">
                 <a v-bind:href="getLabelUrl(label)" :disabled="!label.name">{{label.name || "No label"}}</a>
             </div>
-            <div class="kanbal-column-body panel-body" v-bind:style="getLabelStyle(label)">
-                <div class="issue panel panel-default" v-for="issue in getIssues(label)" draggable="true" @@dragstart="dragstart(issue, $event)"
-                    @@dragend="dragend">
+            <div class="kanbal-column-body panel-body" v-bind:style="getLabelStyle(label)" v-on:dragover="dragover(label)"
+                v-on:dragenter="dragenter(label)" dropzone="move">
+                <div class="issue panel panel-default" v-for="issue in getIssues(label)" draggable="true"
+                    v-on:dragstart="dragstart(issue, $event)" v-on:dragend="dragend">
                     <div class="kanban-issue-header panel-heading">
                         <a v-bind:href="issue.html_url">{{issue.title}} <span class="text-muted">#{{issue.number}}</span></a>
-                        <a href="#" class="kanban-expand-button pull-right text-muted" v-on:click="showComments(issue)">
+                        <span class="kanban-expand-button pull-right text-muted" v-on:click="showComments(issue)">
                             <span v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
-                        </a>
+                        </span>
                     </div>
                     <transition-group name="kanban-expand">
                         <div v-if="issue.show" v-bind:key="issue.number" class="panel-body kanban-expand-item">
