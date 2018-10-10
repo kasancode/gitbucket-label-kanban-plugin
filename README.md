@@ -24,7 +24,6 @@ Plugin version|GitBucket version
 
 ![labelList](./doc/labels.png)
 
-1. Add label(s) prefixed "@".
-1. Move to Kanban page.
-1. Drag Issue to another column.
+1. Click "Add Column" button to add columns (prefixed labels).
+1. Drag a Issue to another column.
 
