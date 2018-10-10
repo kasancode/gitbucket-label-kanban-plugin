@@ -5,11 +5,11 @@ import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service._
 import gitbucket.core.util._
-
-import gitbucket.core.api.{ApiComment, ApiUser,ApiLabel, CreateAComment, JsonFormat}
+import gitbucket.core.api._
 import gitbucket.core.util.Implicits._
+import org.scalatra.{Created, UnprocessableEntity}
 
-class TagKanbanController extends TagKanbanControllerBase
+class LabelKanbanController extends LabelKanbanControllerBase
   with RepositoryService
   with AccountService
   with RequestCache
@@ -28,7 +28,7 @@ class TagKanbanController extends TagKanbanControllerBase
   with ReadableUsersAuthenticator
   with WritableUsersAuthenticator
 
-trait TagKanbanControllerBase extends ControllerBase {
+trait LabelKanbanControllerBase extends ControllerBase {
 
   self: RepositoryService
     with AccountService

@@ -4,7 +4,7 @@ import gitbucket.core.plugin.{Link, PluginRegistry}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.view.helpers
-import io.github.gitbucket.labelkanban.controller.TagKanbanController
+import io.github.gitbucket.labelkanban.controller.LabelKanbanController
 
 class Plugin extends gitbucket.core.plugin.Plugin {
   override val pluginId: String = "labelkanban"
@@ -17,7 +17,7 @@ class Plugin extends gitbucket.core.plugin.Plugin {
   )
 
   override val controllers = Seq(
-    "/*" -> new TagKanbanController()
+    "/*" -> new LabelKanbanController()
   )
 
   override val assetsMappings = Seq("/labelkanban" -> "/plugins/labelkanban/assets")
