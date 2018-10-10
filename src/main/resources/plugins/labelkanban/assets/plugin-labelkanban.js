@@ -3,8 +3,8 @@
 //var basePath;
 //var prefix;
 
-if(!String.prototype.startsWith){
-    String.prototype.startsWith = function(prefix){
+if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function (prefix) {
         return this.lastIndexOf(prefix, 0) === 0;
     }
 }
@@ -18,6 +18,7 @@ var kanbanApp = new Vue({
         /**@type {issue}*/
         dragItem: undefined
         ,
+        /**@type {label} */
         targetLabel: undefined
         ,
         /**@type {lalbel[]} */
@@ -25,6 +26,14 @@ var kanbanApp = new Vue({
         ,
         /**@type {issue[]}*/
         issues: []
+        ,
+        showNewLabelEditor: false
+        ,
+        /**@type {string} */
+        newLabelName: ""
+        ,
+        /**@type {string} */
+        newLabelColor: "#888888"
         ,
         /**
          * @param {label} label
@@ -55,7 +64,7 @@ var kanbanApp = new Vue({
             return Math.round(width) + "%"
         }
         ,
-        getLabelUrl: function(label){
+        getLabelUrl: function (label) {
             return htmlBasePath + "issues?labels=" + encodeURIComponent(label.name);
         }
     }
@@ -66,7 +75,7 @@ var kanbanApp = new Vue({
          * @param {DragEvent} e
          */
         dragstart: function (issue, e) {
-            if(!issue || !issue.title) return;
+            if (!issue || !issue.title) return;
 
             this.draggingItem = issue
             e.target.style.opacity = 0.5;
@@ -86,7 +95,7 @@ var kanbanApp = new Vue({
          * @returns {boolean}
          */
         dragenter: function (label) {
-            if(!this.draggingItem) return;
+            if (!this.draggingItem) return;
 
             event.preventDefault();
         }
@@ -95,7 +104,7 @@ var kanbanApp = new Vue({
          * @param {label} label
          */
         dragover: function (label) {
-            if(!this.draggingItem) return;
+            if (!this.draggingItem) return;
 
             this.targetLabel = label;
             event.preventDefault();
@@ -158,7 +167,7 @@ var kanbanApp = new Vue({
                     kanbanApp.labels = [{ "name": "", "color": "silver", "url": "" }].concat(
                         data.filter(function (label) {
                             return label.name.startsWith(prefix);
-                        }).reverse()
+                        })
                     );
                 })
                 .fail(this.ajaxFial);
@@ -222,6 +231,37 @@ var kanbanApp = new Vue({
                 jqXHR.responseJSON.message :
                 textStatus;
         }
+        ,
+        addNewLabel: function () {
+            if (!this.newLabelName || !this.newLabelColor) {
+                this.message = "Label name and color are requred."
+                return;
+            }
+            this.message = "";
+
+            $.ajax({
+                url: basePath + 'labels',
+                dataType: 'json',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    "name": prefix + this.newLabelName,
+                    "color": this.newLabelColor.slice(1),
+                })
+            })
+                .done(function (data) {
+                    kanbanApp.loadLabels();
+                    kanbanApp.toggleLabelEditor();
+                })
+                .fail(this.ajaxFial);
+        }
+        ,
+        toggleLabelEditor: function () {
+            this.showNewLabelEditor = !this.showNewLabelEditor;
+            this.newLabelName = "";
+            this.newLabelColor = "#888888";
+            this.message = "";
+        }
     }
 });
 
@@ -230,6 +270,12 @@ var kanbanApp = new Vue({
 $(function () {
     kanbanApp.loadLabels();
     kanbanApp.loadIssues();
+
+    $('#kanban-new-label-color-holder').colorpicker({ format: "hex" })
+    .on('changeColor', function (event) {
+        kanbanApp.newLabelColor = event.color.toString();
+    });
+    
 });
 
 /**

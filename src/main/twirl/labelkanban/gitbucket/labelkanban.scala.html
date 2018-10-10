@@ -25,28 +25,51 @@ labelPrefix:String
             <strong>Error : </strong>
             <span>{{message}}</span>
         </div>
-        <div class="kanban-column panel panel-default" v-for="label in labels" v-bind:style="{width:getColWidth()}">
-            <div class="kanban-column-header panel-heading" v-bind:style="getLabelHeaderStyle(label)">
-                <a v-bind:href="getLabelUrl(label)" :disabled="!label.name">{{label.name || "No label"}}</a>
-            </div>
-            <div class="kanbal-column-body panel-body" v-bind:style="getLabelStyle(label)" v-on:dragover="dragover(label)"
-                v-on:dragenter="dragenter(label)" dropzone="move">
-                <div class="issue panel panel-default" v-for="issue in getIssues(label)" draggable="true"
-                    v-on:dragstart="dragstart(issue, $event)" v-on:dragend="dragend">
-                    <div class="kanban-issue-header panel-heading">
-                        <a v-bind:href="issue.html_url">{{issue.title}} <span class="text-muted">#{{issue.number}}</span></a>
-                        <span class="kanban-expand-button pull-right text-muted" v-on:click="showComments(issue)">
-                            <span v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
+        <div class="row">
+            <input id = "kanban-label-toggle" type="button" class="btn btn-sm btn-default pull-right" v-on:click="toggleLabelEditor()"
+                v-bind:value="showNewLabelEditor? ' Cancel ' : ' Add column '" />
+            <div v-show="showNewLabelEditor" class="pull-right">
+                <form class="form-inline" autocomplete="off">
+                    <input type="text" id="kanban-new-label-name" class="form-control input-sm" v-model.lazy="newLabelName"
+                        placeholder="New label name" />
+                    <div id="kanban-new-label-color-holder" class="input-group color bscp" data-color="#888888"
+                        data-color-format="hex">
+                        <input type="text" class="form-control input-sm" id="kanban-new-label-color" v-model="newLabelColor">
+                        <span class="input-group-addon">
+                            <i v-bind:style="{'background-color':newLabelColor}"></i>
                         </span>
                     </div>
-                    <transition-group name="kanban-expand">
-                        <div v-if="issue.show" v-bind:key="issue.number" class="panel-body kanban-expand-item">
-                            <div class="kanban-comment">{{issue.body}}</div>
-                            <div class="kanban-comment" v-if="issue.comments" v-for="comment in issue.comments">
-                                {{comment.body}}
-                            </div>
+                    <span>
+                        <input type="button" id="kanban-label-submit" class="btn btn-sm btn-success" value="Add"
+                            v-on:click="addNewLabel()" />
+                    </span>
+                </form>
+            </div>
+        </div>
+        <div>
+            <div class="kanban-column panel panel-default" v-for="label in labels" v-bind:style="{width:getColWidth()}">
+                <div class="kanban-column-header panel-heading" v-bind:style="getLabelHeaderStyle(label)">
+                    <a v-bind:href="getLabelUrl(label)" :disabled="!label.name">{{label.name || "No label"}}</a>
+                </div>
+                <div class="kanbal-column-body panel-body" v-bind:style="getLabelStyle(label)" v-on:dragover="dragover(label)"
+                    v-on:dragenter="dragenter(label)" dropzone="move">
+                    <div class="issue panel panel-default" v-for="issue in getIssues(label)" draggable="true"
+                        v-on:dragstart="dragstart(issue, $event)" v-on:dragend="dragend">
+                        <div class="kanban-issue-header panel-heading">
+                            <a v-bind:href="issue.html_url">{{issue.title}} <span class="text-muted">#{{issue.number}}</span></a>
+                            <span class="kanban-expand-button pull-right text-muted" v-on:click="showComments(issue)">
+                                <span v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
+                            </span>
                         </div>
-                    </transition-group>
+                        <transition-group name="kanban-expand">
+                            <div v-if="issue.show" v-bind:key="issue.number" class="panel-body kanban-expand-item">
+                                <div class="kanban-comment">{{issue.body}}</div>
+                                <div class="kanban-comment" v-if="issue.comments" v-for="comment in issue.comments">
+                                    {{comment.body}}
+                                </div>
+                            </div>
+                        </transition-group>
+                    </div>
                 </div>
             </div>
         </div>

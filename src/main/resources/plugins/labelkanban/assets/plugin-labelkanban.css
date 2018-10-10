@@ -52,3 +52,27 @@
     overflow: hidden;
 	text-overflow: ellipsis;
 }
+
+#kanban-new-label-name{
+    width: 200px; 
+    float: left; 
+    margin-right: 4px;
+}
+
+#kanban-new-label-color-holder{
+    width: 100px; float: left;
+}
+
+#kanban-new-label-color{
+    width: 100px;
+}
+
+#kanban-label-submit{
+    margin-bottom: 0px;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+#kanban-label-toggle{
+    margin-right:30px;
+}
