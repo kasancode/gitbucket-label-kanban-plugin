@@ -179,6 +179,22 @@ var kanbanApp = new Vue({
          * @param {label} label 
          */
         changeLabel: function (issue, label) {
+            if (!issue || !label)
+                return;
+
+            var noPrefix = true;
+            for (var i = 0; i < issue.labels.length; i++) {
+                if (issue.labels[i].name.startsWith(prefix)) {
+                    if (issue.labels[i].name == label.name)
+                        return;
+                    noPrefix = false;
+                    break;
+                }
+            }
+
+            if (noPrefix && label.name === "")
+                return;
+
             var labelUrl = issue.comments_url.replace(/comments$/, "plugin/labelkanban/labels/");
 
             var oldLabel = null;
@@ -272,10 +288,10 @@ $(function () {
     kanbanApp.loadIssues();
 
     $('#kanban-new-label-color-holder').colorpicker({ format: "hex" })
-    .on('changeColor', function (event) {
-        kanbanApp.newLabelColor = event.color.toString();
-    });
-    
+        .on('changeColor', function (event) {
+            kanbanApp.newLabelColor = event.color.toString();
+        });
+
 });
 
 /**
