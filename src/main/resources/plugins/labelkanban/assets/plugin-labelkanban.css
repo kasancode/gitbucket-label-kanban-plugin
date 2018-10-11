@@ -55,12 +55,11 @@
 
 #kanban-new-label-name{
     width: 200px; 
-    float: left; 
     margin-right: 4px;
 }
 
 #kanban-new-label-color-holder{
-    width: 100px; float: left;
+    width: 100px;
 }
 
 #kanban-new-label-color{
