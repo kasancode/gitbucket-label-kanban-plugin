@@ -3,6 +3,8 @@
 //var basePath;
 //var prefix;
 
+var prefixes = ["@", "$", "#"];
+
 if (!String.prototype.startsWith) {
     String.prototype.startsWith = function (prefix) {
         return this.lastIndexOf(prefix, 0) === 0;
@@ -34,6 +36,15 @@ var kanbanApp = new Vue({
         ,
         /**@type {string} */
         newLabelColor: "#888888"
+        ,
+        metrics: {}
+        ,
+        /**@type {Object.<string, label}>} */
+        lanes: {}
+        ,
+        columnName: ""
+        ,
+        rowName: ""
         ,
         /**
          * @param {label} label
@@ -168,14 +179,17 @@ var kanbanApp = new Vue({
                 dataType: 'json'
             })
                 .done(function (data) {
-                    kanbanApp.labels = [{ "name": "", "color": "silver", "url": "" }].concat(
-                        data.filter(function (label) {
-                            return label.name.startsWith(prefix);
-                        })
-                    );
+                    for (var i = 0; i < prefixes.length; i++) {
+                        var prefix = prefixes[i];
+
+                        kanbanApp.lanes["label:" + prefix] = [{ "name": "", "color": "silver", "url": "" }].concat(
+                            data.filter(function (label) {
+                                return label.name.startsWith(prefix);
+                            })
+                        );
+                    }
                 })
                 .fail(this.ajaxFial);
-
         }
         ,
         /**
@@ -297,6 +311,9 @@ $(function () {
         });
 
 });
+
+/**
+ */
 
 /**
  * @typedef {object} user

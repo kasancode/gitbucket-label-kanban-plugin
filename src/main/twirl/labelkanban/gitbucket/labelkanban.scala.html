@@ -83,7 +83,7 @@ labelPrefix:String
 <script>
     var htmlBasePath = "@context.path/@helpers.urlEncode(repository.owner)/@helpers.urlEncode(repository.name)/";
     var basePath = "@context.path/api/v3/repos/@helpers.urlEncode(repository.owner)/@helpers.urlEncode(repository.name)/";
-    var prefix = "@labelPrefix";
+    var prefixes = ["@", "$", "#"];
 </script>
 <script src="@context.path/plugin-assets/labelkanban/vue.min.js"></script>
 <script src="@context.path/plugin-assets/labelkanban/plugin-labelkanban.js"></script>
