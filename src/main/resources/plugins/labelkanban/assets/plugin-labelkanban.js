@@ -143,18 +143,22 @@ var kanbanApp = new Vue({
         }
         ,
         loadIssues: function () {
-            $.ajax({
-                url: basePath + 'issues?state=open',
-                dataType: 'json'
-            })
-                .done(function (data) {
-                    kanbanApp.issues = data.filter(function (issue) {
-                        issue.show = false;
-                        issue.comments = null;
-                        return issue.state == "open";
-                    });
+            kanbanApp.issues = [];
+
+            ['issues?state=open', 'pulls?state=open'].forEach(function (addUrl) {
+                $.ajax({
+                    url: basePath + addUrl,
+                    dataType: 'json'
                 })
-                .fail(this.ajaxFial);
+                    .done(function (data) {
+                        data.forEach(function(issue){
+                            issue.show = false;
+                            issue.comments = null;
+                            kanbanApp.issues.push(issue);
+                        });
+                    })
+                    .fail(this.ajaxFial);
+            });
 
         }
         ,
