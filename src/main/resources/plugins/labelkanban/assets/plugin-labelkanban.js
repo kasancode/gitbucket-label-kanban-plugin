@@ -151,7 +151,7 @@ var kanbanApp = new Vue({
                     dataType: 'json'
                 })
                     .done(function (data) {
-                        data.forEach(function(issue){
+                        data.forEach(function (issue) {
                             issue.show = false;
                             issue.comments = null;
                             kanbanApp.issues.push(issue);
