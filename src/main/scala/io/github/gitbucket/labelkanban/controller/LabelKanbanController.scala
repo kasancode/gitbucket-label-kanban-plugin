@@ -7,9 +7,12 @@ import gitbucket.core.service._
 import gitbucket.core.util._
 import gitbucket.core.api._
 import gitbucket.core.util.Implicits._
+import io.github.gitbucket.labelkanban.api.{ApiIssueKanban, ApiMilestone, ApiPriority}
+import io.github.gitbucket.labelkanban.service.LabelKanbanService
 import org.scalatra.{Created, UnprocessableEntity}
 
 class LabelKanbanController extends LabelKanbanControllerBase
+  with LabelKanbanService
   with RepositoryService
   with AccountService
   with RequestCache
@@ -30,7 +33,8 @@ class LabelKanbanController extends LabelKanbanControllerBase
 
 trait LabelKanbanControllerBase extends ControllerBase {
 
-  self: RepositoryService
+  self: LabelKanbanService
+    with RepositoryService
     with AccountService
     with RequestCache
     with ProtectedBranchService
@@ -59,49 +63,102 @@ trait LabelKanbanControllerBase extends ControllerBase {
     }
   )
 
-  post("/api/v3/repos/:owner/:repository/issues/:id/plugin/labelkanban/labels/new/:labelName")(readableUsersOnly { repository =>
-    try {
-      val issueId = params("id")
-      val issue = getIssue(repository.owner, repository.name, issueId)
-      val labels = getLabels(repository.owner, repository.name)
-      val issueLabels = getIssueLabels(repository.owner, repository.name, issueId.toInt)
-      val labelName = params("labelName")
-
-      val id = labels.find(_.labelName == labelName).get.labelId
-      registerIssueLabel(repository.owner, repository.name, issueId.toInt, id)
-
+  get("/api/v3/repos/:owner/:repository/plugin/labelkanban/issues")(referrersOnly { repository =>
       JsonFormat(
-        getIssueLabels(repository.owner, repository.name, issueId.toInt).map { label =>
-          ApiLabel(label, RepositoryName(repository))
-        })
-    }catch {
-      case e:Exception =>
-      {
-        JsonFormat(e.getLocalizedMessage -> e.fillInStackTrace)
-      }
+        getOpenIssues(repository.owner, repository.name).map(issue =>
+          ApiIssueKanban(
+            issue,
+            getIssueLabels(repository.owner, repository.name, issue.issueId).map{label =>
+              label.labelName
+            },
+            RepositoryName(repository)
+          )
+        )
+      )
     }
+  )
+
+  get("/api/v3/repos/:owner/:repository/plugin/labelkanban/milestones")(referrersOnly { repository =>
+    JsonFormat(
+      getMilestones(repository.owner, repository.name).map{milestone =>
+        ApiMilestone(milestone, RepositoryName(repository))
+    })
   })
 
-  post("/api/v3/repos/:owner/:repository/issues/:id/plugin/labelkanban/labels/delete/:labelName")(readableUsersOnly { repository =>
-    try {
-      val issueId = params("id")
-      val issue = getIssue(repository.owner, repository.name, issueId)
-      val labels = getLabels(repository.owner, repository.name)
-      val issueLabels = getIssueLabels(repository.owner, repository.name, issueId.toInt)
-      val labelName = params("labelName")
-
-      val id = labels.find(_.labelName == labelName).get.labelId
-      deleteIssueLabel(repository.owner, repository.name, issueId.toInt, id)
-
-      JsonFormat(
-        getIssueLabels(repository.owner, repository.name, issueId.toInt).map { label =>
-          ApiLabel(label, RepositoryName(repository))
-        })
-    }catch {
-      case e:Exception =>
-      {
-        JsonFormat(e.getLocalizedMessage -> e.fillInStackTrace)
-      }
-    }
+  get("/api/v3/repos/:owner/:repository/plugin/labelkanban/priorities")(referrersOnly { repository =>
+    JsonFormat(
+      getPriorities(repository.owner, repository.name).map(priority =>
+        ApiPriority(priority, RepositoryName(repository))
+      )
+    )
   })
+
+  get("/api/v3/repos/:owner/:repository/plugin/labelkanban/priority/:pid/switch/issue/:iid")(readableUsersOnly{repository =>
+    val issueId = params("iid").toInt
+    val priorityId = params("pid").toInt match {
+      case i if i >= 0 => Some(i)
+      case _ => None
+    }
+
+    updatePriorityId(repository.owner, repository.name, issueId, priorityId)
+
+    val issue = getIssue(repository.owner, repository.name, issueId.toString).get
+
+    JsonFormat(
+      ApiIssueKanban(
+        issue,
+        getIssueLabels(repository.owner, repository.name, issue.issueId).map{label =>
+          label.labelName
+        },
+        RepositoryName(repository)
+      )
+    )
+  })
+
+  get("/api/v3/repos/:owner/:repository/plugin/labelkanban/milestone/:mid/switch/issue/:iid")(readableUsersOnly{repository =>
+    val issueId = params("iid").toInt
+    val milestoneId = params("mid").toInt match {
+      case i if i >= 0 => Some(i)
+      case _ => None
+    }
+
+    updateMilestoneId(repository.owner, repository.name, issueId, milestoneId)
+
+    val issue = getIssue(repository.owner, repository.name, issueId.toString).get
+
+    JsonFormat(
+      ApiIssueKanban(
+        issue,
+        getIssueLabels(repository.owner, repository.name, issue.issueId).map{label =>
+          label.labelName
+        },
+        RepositoryName(repository)
+      )
+    )
+  })
+
+  get("/api/v3/repos/:owner/:repository/plugin/labelkanban/label/:lid/prefix/:pre/switch/issue/:iid")(readableUsersOnly{repository =>
+    val issueId = params("iid").toInt
+    val labelId = params("lid").toInt
+    val prefix = params("pre")
+
+    val labels = getLabels(repository.owner, repository.name)
+    labels.filter(_.labelName.startsWith(prefix)).map( label =>
+      deleteIssueLabel(repository.owner, repository.name, issueId, label.labelId,true)
+    )
+    registerIssueLabel(repository.owner,repository.name, issueId, labelId, true)
+
+    val issue = getIssue(repository.owner, repository.name, issueId.toString).get
+
+    JsonFormat(
+      ApiIssueKanban(
+        issue,
+        getIssueLabels(repository.owner, repository.name, issue.issueId).map{label =>
+          label.labelName
+        },
+        RepositoryName(repository)
+      )
+    )
+  })
+
 }
