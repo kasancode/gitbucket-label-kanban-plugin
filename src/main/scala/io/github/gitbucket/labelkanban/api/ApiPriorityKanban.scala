@@ -1,9 +1,11 @@
 package io.github.gitbucket.labelkanban.api
 
+import gitbucket.core.api.{ApiPath, FieldSerializable}
 import gitbucket.core.util.RepositoryName
 import gitbucket.core.model.Priority
+import gitbucket.core.view.helpers.urlEncode
 
-case class ApiPriority(
+case class ApiPriorityKanban(
                         userName: String,
                         priorityId: Int = 0,
                         priorityName: String,
@@ -11,14 +13,14 @@ case class ApiPriority(
                         isDefault: Boolean,
                         ordering: Int = 0,
                         color: String
-                      )(repositoryName: RepositoryName) {
-  var url = ""
-  var html_url = ""
+                      )(repositoryName: RepositoryName) extends FieldSerializable {
+  val html_url = ApiPath(s"/${repositoryName.fullName}/issues?priority=${urlEncode(priorityName)}&state=open")
+  val switch_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/priority/${priorityId}/switch/issue/")
 }
 
-object ApiPriority {
-  def apply(priority: Priority, repositoryName: RepositoryName): ApiPriority =
-    ApiPriority(
+object ApiPriorityKanban {
+  def apply(priority: Priority, repositoryName: RepositoryName): ApiPriorityKanban =
+    ApiPriorityKanban(
       userName = priority.userName,
       priorityId = priority.priorityId,
       priorityName = priority.priorityName,
@@ -26,6 +28,5 @@ object ApiPriority {
       isDefault = priority.isDefault,
       ordering = priority.ordering,
       color = priority.color)(repositoryName: RepositoryName)
-
 }
 
