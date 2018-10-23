@@ -1,17 +1,18 @@
 package io.github.gitbucket.labelkanban.api
 
+import gitbucket.core.api.{ApiPath, FieldSerializable}
 import gitbucket.core.model.Label
 import gitbucket.core.util.RepositoryName
+import gitbucket.core.view.helpers
 
 case class ApiLabelKanban(
                            userName: String,
                            labelId: Int = 0,
                            labelName: String,
                            color: String
-                         )(repositoryName: RepositoryName) {
-  var url = ""
-  var html_url = ""
-  var switch_url = ""
+                         )(repositoryName: RepositoryName) extends FieldSerializable {
+  val html_url = ApiPath(s"/${repositoryName.fullName}/issues?labels=${helpers.urlEncode(labelName)}&state=open")
+  val switch_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/label/${labelId}/switch/issue/")
 }
 
 object ApiLabelKanban {

@@ -2,9 +2,10 @@ package io.github.gitbucket.labelkanban.api
 
 import java.util.Date
 
-import gitbucket.core.api.{ApiIssue, ApiLabel, ApiUser, JsonFormat}
+import gitbucket.core.api._
 import gitbucket.core.model.Issue
 import gitbucket.core.util.RepositoryName
+import gitbucket.core.view.helpers
 
 case class ApiIssueKanban(
                            number: Int,
@@ -18,9 +19,10 @@ case class ApiIssueKanban(
                            milestoneId: Int,
                            priorityId: Int,
                            isPullRequest: Boolean
-                         )(repositoryName: RepositoryName) {
-  var url = ""
-  var html_url = ""
+                         )(repositoryName: RepositoryName) extends FieldSerializable
+{
+  val html_url = ApiPath(s"/${repositoryName.fullName}/issues/${number}")
+  val comments_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/issues/${number}/comments")
 }
 
 
