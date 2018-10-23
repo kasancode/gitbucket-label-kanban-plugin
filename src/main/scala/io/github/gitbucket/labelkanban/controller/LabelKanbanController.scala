@@ -7,7 +7,7 @@ import gitbucket.core.service._
 import gitbucket.core.util._
 import gitbucket.core.api._
 import gitbucket.core.util.Implicits._
-import io.github.gitbucket.labelkanban.api.{ApiIssueKanban, ApiMilestone, ApiPriority}
+import io.github.gitbucket.labelkanban.api.{ApiIssueKanban, ApiLabelKanban, ApiMilestoneKanban, ApiPriorityKanban}
 import io.github.gitbucket.labelkanban.service.LabelKanbanService
 import org.scalatra.{Created, UnprocessableEntity}
 
@@ -78,17 +78,24 @@ trait LabelKanbanControllerBase extends ControllerBase {
     }
   )
 
+  get("/api/v3/repos/:owner/:repository/plugin/labelkanban/labels")(referrersOnly { repository =>
+    JsonFormat(
+      getLabels(repository.owner, repository.name).map{label =>
+        ApiLabelKanban(label, RepositoryName(repository))
+      })
+  })
+
   get("/api/v3/repos/:owner/:repository/plugin/labelkanban/milestones")(referrersOnly { repository =>
     JsonFormat(
       getMilestones(repository.owner, repository.name).map{milestone =>
-        ApiMilestone(milestone, RepositoryName(repository))
+        ApiMilestoneKanban(milestone, RepositoryName(repository))
     })
   })
 
   get("/api/v3/repos/:owner/:repository/plugin/labelkanban/priorities")(referrersOnly { repository =>
     JsonFormat(
       getPriorities(repository.owner, repository.name).map(priority =>
-        ApiPriority(priority, RepositoryName(repository))
+        ApiPriorityKanban(priority, RepositoryName(repository))
       )
     )
   })
@@ -96,7 +103,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
   get("/api/v3/repos/:owner/:repository/plugin/labelkanban/priority/:pid/switch/issue/:iid")(readableUsersOnly{repository =>
     val issueId = params("iid").toInt
     val priorityId = params("pid").toInt match {
-      case i if i >= 0 => Some(i)
+      case i if i > 0 => Some(i)
       case _ => None
     }
 
@@ -118,7 +125,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
   get("/api/v3/repos/:owner/:repository/plugin/labelkanban/milestone/:mid/switch/issue/:iid")(readableUsersOnly{repository =>
     val issueId = params("iid").toInt
     val milestoneId = params("mid").toInt match {
-      case i if i >= 0 => Some(i)
+      case i if i > 0 => Some(i)
       case _ => None
     }
 
@@ -137,6 +144,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
     )
   })
 
+
   get("/api/v3/repos/:owner/:repository/plugin/labelkanban/label/:lid/prefix/:pre/switch/issue/:iid")(readableUsersOnly{repository =>
     val issueId = params("iid").toInt
     val labelId = params("lid").toInt
@@ -146,7 +154,10 @@ trait LabelKanbanControllerBase extends ControllerBase {
     labels.filter(_.labelName.startsWith(prefix)).map( label =>
       deleteIssueLabel(repository.owner, repository.name, issueId, label.labelId,true)
     )
-    registerIssueLabel(repository.owner,repository.name, issueId, labelId, true)
+
+    if(labelId > 0) {
+      registerIssueLabel(repository.owner, repository.name, issueId, labelId, true)
+    }
 
     val issue = getIssue(repository.owner, repository.name, issueId.toString).get
 
