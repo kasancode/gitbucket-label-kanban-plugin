@@ -9,7 +9,7 @@ The columns are labels prefixed with "@".
 
 ## Installation
 
-Download jar file from [the release page](https://github.com/kasancode/gitbucket-gantt-plugin/releases) and put it into `GITBUCKET_HOME/plugins`.
+Download jar file from [the release page](https://github.com/kasancode/gitbucket-label-kanban-plugin/releases) and put it into `GITBUCKET_HOME/plugins`.
 
 ## Version
 
