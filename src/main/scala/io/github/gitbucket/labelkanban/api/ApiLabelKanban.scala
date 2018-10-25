@@ -12,7 +12,8 @@ case class ApiLabelKanban(
                            color: String
                          )(repositoryName: RepositoryName) extends FieldSerializable {
   val html_url = ApiPath(s"/${repositoryName.fullName}/issues?labels=${helpers.urlEncode(labelName)}&state=open")
-  val switch_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/label/${labelId}/switch/issue/")
+  val detach_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/label/${labelId}/detach/issue/")
+  val attach_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/label/${labelId}/attach/issue/")
 }
 
 object ApiLabelKanban {

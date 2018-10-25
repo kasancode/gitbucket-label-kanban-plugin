@@ -15,7 +15,8 @@ case class ApiPriorityKanban(
                         color: String
                       )(repositoryName: RepositoryName) extends FieldSerializable {
   val html_url = ApiPath(s"/${repositoryName.fullName}/issues?priority=${urlEncode(priorityName)}&state=open")
-  val switch_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/priority/${priorityId}/switch/issue/")
+  val detach_url = ""
+  val attach_url =  ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/priority/${priorityId}/switch/issue/")
 }
 
 object ApiPriorityKanban {

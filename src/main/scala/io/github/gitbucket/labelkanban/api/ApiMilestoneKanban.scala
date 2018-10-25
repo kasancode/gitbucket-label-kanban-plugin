@@ -6,7 +6,8 @@ import gitbucket.core.util.RepositoryName
 import gitbucket.core.view.helpers
 import gitbucket.core.view.helpers.urlEncode
 
-case class ApiMilestoneKanban(userName: String,
+case class ApiMilestoneKanban(
+                               userName: String,
                               milestoneId: Int = 0,
                               title: String,
                               description: Option[String],
@@ -17,7 +18,8 @@ case class ApiMilestoneKanban(userName: String,
                        ) extends FieldSerializable
 {
   val html_url = ApiPath(s"/${repositoryName.fullName}/issues?milestone=${helpers.urlEncode(title)}&state=open")
-  val switch_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/milestone/${milestoneId}/switch/issue/")
+  val detach_url = ""
+  val attach_url =  ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/milestone/${milestoneId}/switch/issue/")
 }
 
 object ApiMilestoneKanban {
