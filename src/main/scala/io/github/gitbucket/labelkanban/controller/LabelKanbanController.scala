@@ -10,6 +10,7 @@ import gitbucket.core.util.Implicits._
 import io.github.gitbucket.labelkanban.api._
 import io.github.gitbucket.labelkanban.service.LabelKanbanService
 import org.scalatra.{Created, UnprocessableEntity}
+import java.util.Date
 
 class LabelKanbanController extends LabelKanbanControllerBase
   with LabelKanbanService
@@ -89,7 +90,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
     JsonFormat(
       getMilestonesWithIssueCount(repository.owner, repository.name)
         .filter(items =>
-          items._2 > 0 || items._3 == 0)
+          items._2 > 0 || items._3 == 0 || (items._1.dueDate.isDefined && items._1.dueDate.get.after(new Date)))
         .map (items =>
           ApiMilestoneKanban(items._1, RepositoryName(repository))
         ))
@@ -136,7 +137,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
   })
 
 
-  get("/api/v3/repos/:owner/:repository/plugin/labelkanban/assignee/:assignee/switch/issue/:iid")(readableUsersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/plugin/labelkanban/assignee/:assignee/attach/issue/:iid")(readableUsersOnly { repository =>
     val issueId = params("iid").toInt
     val assignee = params("assignee") match {
       case s: String if s.length > 0 => Some(s)
@@ -148,6 +149,13 @@ trait LabelKanbanControllerBase extends ControllerBase {
     getApiIssue(issueId, repository)
   })
 
+  get("/api/v3/repos/:owner/:repository/plugin/labelkanban/assignee/detach/issue/:iid")(readableUsersOnly { repository =>
+    val issueId = params("iid").toInt
+
+    updateAssignedUserName(repository.owner, repository.name, issueId, None, true)
+
+    getApiIssue(issueId, repository)
+  })
 
   get("/api/v3/repos/:owner/:repository/plugin/labelkanban/label/:lid/detach/issue/:iid")(readableUsersOnly { repository =>
     val issueId = params("iid").toInt
