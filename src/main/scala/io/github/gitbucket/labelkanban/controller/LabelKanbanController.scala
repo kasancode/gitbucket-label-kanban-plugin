@@ -119,7 +119,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
       case _ => None
     }
 
-    updatePriorityId(repository.owner, repository.name, issueId, priorityId)
+    updatePriorityId(repository.owner, repository.name, issueId, priorityId, true)
 
     getApiIssue(issueId, repository)
   })
@@ -131,7 +131,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
       case _ => None
     }
 
-    updateMilestoneId(repository.owner, repository.name, issueId, milestoneId)
+    updateMilestoneId(repository.owner, repository.name, issueId, milestoneId, true)
 
     getApiIssue(issueId, repository)
   })
