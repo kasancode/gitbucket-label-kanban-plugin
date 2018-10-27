@@ -1,9 +1,53 @@
 
-//var htmlBasePath;
+
+//var apiBasepath;
 //var basePath;
 //var prefix;
 
-var prefixes = ["@", "$", "#"];
+var dummyLanes = {
+    "None": {
+        id: -1,
+        name: "",
+        color: "333333",
+        html_url: "",
+        detach_url: "",
+        attach_url: ""
+    }
+}
+
+function initilizeDummyLanes() {
+    prefixes.map(function (prefix) {
+        dummyLanes[prefixToLaneKey(prefix)] = {
+            id: -1,
+            name: "",
+            color: "333333",
+            html_url: "",
+            detach_url: "",
+            attach_url: ""
+        }
+    });
+    dummyLanes["Milestones"] = {
+        id: -1,
+        name: "",
+        color: "333333",
+        detach_url: "",
+        attach_url: basePath + "milestone/0/switch/issue/"
+    };
+    dummyLanes["Priorities"] = {
+        id: -1,
+        name: "",
+        color: "333333",
+        detach_url: "",
+        attach_url: basePath + "priority/0/switch/issue/"
+    };
+    dummyLanes["Assignees"] = {
+        id: "",
+        name: "",
+        color: "333333",
+        detach_url: "",
+        attach_url: basePath + "assignee/detach/issue/"
+    };
+}
 
 if (!String.prototype.startsWith) {
     String.prototype.startsWith = function (prefix) {
@@ -11,20 +55,34 @@ if (!String.prototype.startsWith) {
     }
 }
 
+/**
+ * 
+ * @param {string} prefix 
+ * @returns {string}
+ */
+function prefixToLaneKey(prefix) {
+    return "Label:" + prefix;
+}
+
 var kanbanApp = new Vue({
     el: "#kanban-app",
-
     data: {
         message: ""
         ,
         /**@type {issue}*/
         dragItem: undefined
         ,
-        /**@type {label} */
-        targetLabel: undefined
+        /**@type {lane} */
+        targetRowLane: undefined
         ,
-        /**@type {lalbel[]} */
-        labels: []
+        /**@type {lane} */
+        targetColLane: undefined
+        ,
+        /**@type {lane} */
+        originRowLane: undefined
+        ,
+        /**@type {lane} */
+        originColLane: undefined
         ,
         /**@type {issue[]}*/
         issues: []
@@ -37,58 +95,87 @@ var kanbanApp = new Vue({
         /**@type {string} */
         newLabelColor: "#888888"
         ,
-        metrics: {}
-        ,
-        /**@type {Object.<string, label}>} */
+        /**@type {Object.<string, [lane]}>} */
         lanes: {}
         ,
-        columnName: ""
+        colKey: ""
         ,
-        rowName: ""
+        rowKey: ""
+        ,
+        prefix: ""
+        ,
+        prefixes: []
+        ,
+        getLaneKeys: function () {
+            return Object.keys(this.lanes);
+        }
         ,
         /**
-         * @param {label} label
+         * @param {string} key
+         * @param {boolean} dummyFirst
+         * @returns {[lane]}
+         */
+        getLanes: function (key, dummyFirst = true) {
+            if (!key)
+                return [dummyLanes["None"]];
+
+            if (this.lanes[key].length < 1)
+                return [dummyLanes["None"]];
+
+
+            if (dummyFirst)
+                return [dummyLanes[key]].concat(this.lanes[key]);
+            else
+                return this.lanes[key].concat([dummyLanes[key]]);
+        }
+        ,
+        /**
+         * @param {[issue]} issues
+         * @param {string} key
+         * @param {lane} lane
          * @returns {issue[]}
          */
-        getIssues: function (label) {
-            if (label && label.name) {
-                return this.issues.filter(function (issue) {
-                    return issue.labels.some(function (value) {
-                        return value.name == label.name;
-                    });
-                });
-            }
-            else {
-                return this.issues.filter(function (issue) {
-                    return issue.labels.every(function (_label) {
-                        return !_label.name.startsWith(prefix);
-                    })
-                });
-            }
+        getIssues: function (issues, key, lane) {
+            return issues.filter(function (i) {
+                return i.metrics[key] == lane.id;
+            });
         }
         ,
         /**
          * @returns {string}
          */
         getColWidth: function () {
-            var width = (100 - 2) / this.labels.length - 2;
+            var width = (100 - 2) / this.lanes[this.colKey].length - 2;
             return Math.round(width) + "%"
         }
         ,
-        getLabelUrl: function (label) {
-            return htmlBasePath + "issues?labels=" + encodeURIComponent(label.name);
+        /**@param {lane} lane */
+        getLaneUrl: function (lane) {
+            return lane.html_url;
+        }
+        ,
+        getContainerStyle: function () {
+            return {
+                "display": "grid",
+                "grid-template-rows": "100px 50px",
+                "grid-template-columns": "150px 1fr"
+            };
         }
     }
     ,
     methods: {
         /**
          * @param {issue} issue
+         * @param {Lane} row
+         * @param {Lane} col
          * @param {DragEvent} e
          */
-        dragstart: function (issue, e) {
+        dragstart: function (issue, row, col, e) {
             if (!issue || !issue.title) return;
 
             this.draggingItem = issue
+            this.originRowLane = row;
+            this.originColLane = col;
             e.target.style.opacity = 0.5;
         }
         ,
@@ -97,27 +184,33 @@ var kanbanApp = new Vue({
          */
         dragend: function (e) {
             e.target.style.opacity = 1;
-            this.changeLabel(this.draggingItem, this.targetLabel);
-            this.targetLabel = undefined;
+            this.changeLane(this.colKey, this.draggingItem, this.originColLane, this.targetColLane);
+            this.changeLane(this.rowKey, this.draggingItem, this.originRowLane, this.targetRowLane);
             this.draggingItem = undefined;
+            this.targetColLane = undefined;
+            this.targetRowLane = undefined;
+            this.originColLane = undefined;
+            this.originRowLane = undefined;
         }
         ,
         /**
          * @returns {boolean}
          */
-        dragenter: function (label) {
+        dragenter: function (rowLane, colLane) {
             if (!this.draggingItem) return;
 
             event.preventDefault();
         }
         ,
         /**
-         * @param {label} label
+         * @param {lane} lane
          */
-        dragover: function (label) {
+        dragover: function (rowLane, colLane) {
             if (!this.draggingItem) return;
 
-            this.targetLabel = label;
+            this.targetColLane = colLane;
+            this.targetRowLane = rowLane;
+
             event.preventDefault();
         }
         ,
@@ -132,59 +225,103 @@ var kanbanApp = new Vue({
         }
         ,
         /**
-         * @param {label} label
+         * @param {lane} rowLane
+         * @param {lane} colLane
          * @returns {object}
          */
-        getLabelStyle: function (label) {
-            var isTarget = (this.targetLabel && this.targetLabel.name == label.name)
+        getLaneStyle: function (rowLane, colLane) {
+            var isTarget = (this.targetColLane && this.targetColLane.name == colLane.name) &&
+                (this.targetRowLane && this.targetRowLane.name == rowLane.name)
             return {
-                'background-color': (isTarget ? "#f5f5f5" : "transparent"),
+                'background-color': (isTarget ? "#f5f5f5" : "white"),
             };
         }
         ,
         /**
-         * @param {label} label
+         * @param {lane} lane
          * @returns {object}
          */
-        getLabelHeaderStyle: function (label) {
-            var color = (label && label.color) ? "#" + label.color : "silver";
+        getLaneHeaderStyle: function (lane) {
+            var color = (lane && lane.color) ? "#" + lane.color : "333333";
             return {
-                'border-top-color': color
+                'border-top': 'solid 7px ' + color
             }
         }
         ,
-        loadIssues: function () {
-            kanbanApp.issues = [];
-
-            ['issues?state=open', 'pulls?state=open'].forEach(function (addUrl) {
-                $.ajax({
-                    url: basePath + addUrl,
-                    dataType: 'json'
-                })
-                    .done(function (data) {
-                        data.forEach(function (issue) {
-                            issue.show = false;
-                            issue.comments = null;
-                            kanbanApp.issues.push(issue);
+        /**
+         * @param {Object} metrics
+         * @param {[string]} labels
+         */
+        addLabelToMetrics: function (metrics, labels) {
+            prefixes.forEach(function (prefix) {
+                for (var i = 0; i < labels.length; i++) {
+                    var label = labels[i];
+                    if (label.startsWith(prefix)) {
+                        var item = kanbanApp.lanes[prefixToLaneKey(prefix)].filter(function (l) {
+                            return l.name == label;
                         });
-                    })
-                    .fail(this.ajaxFial);
-            });
 
+                        var id = (item && item[0] && item[0].id) ? item[0].id : -1;
+                        metrics[prefixToLaneKey(prefix)] = id;
+                        break;
+                    }
+                }
+
+                if (Object.keys(metrics).indexOf(prefixToLaneKey(prefix)) < 0)
+                    metrics[prefixToLaneKey(prefix)] = -1;
+            })
+        }
+        ,
+        loadIssues: function () {
+            var _this = this;
+
+            $.ajax({
+                url: basePath + 'issues',
+                dataType: 'json'
+            })
+                .done(function (data) {
+                    _this.issues = data.filter(function (issue) {
+                        issue.show = false;
+                        issue.comments = null;
+                        issue.metrics = {};
+
+                        issue.metrics["None"] = -1;
+                        _this.addLabelToMetrics(issue.metrics, issue.labelNames)
+                        issue.metrics["Milestones"] = issue.milestoneId;
+                        issue.metrics["Priorities"] = issue.priorityId;
+                        issue.metrics["Assignees"] = issue.assignedUserName;
+
+                        return !issue.closed;
+                    });
+
+                    _this.colKey = _this.getLaneKeys()[1];
+                    _this.rowKey = _this.getLaneKeys()[0];
+                })
+                .fail(this.ajaxFial);
         }
         ,
         loadLabels: function () {
+            var _this = this;
             $.ajax({
-                url: basePath + 'labels/',
+                url: basePath + 'labels',
                 dataType: 'json'
             })
                 .done(function (data) {
                     for (var i = 0; i < prefixes.length; i++) {
                         var prefix = prefixes[i];
 
-                        kanbanApp.lanes["label:" + prefix] = [{ "name": "", "color": "silver", "url": "" }].concat(
+                        Vue.set(_this.lanes, prefixToLaneKey(prefix),
                             data.filter(function (label) {
-                                return label.name.startsWith(prefix);
+                                return label.labelName.startsWith(prefix);
+                            }).map(function (label) {
+                                return {
+                                    id: label.labelId,
+                                    name: label.labelName,
+                                    color: label.color,
+                                    html_url: label.html_url,
+                                    attach_url: label.attach_url,
+                                    detach_url: label.detach_url
+                                };
                             })
                         );
                     }
@@ -192,61 +329,110 @@ var kanbanApp = new Vue({
                 .fail(this.ajaxFial);
         }
         ,
+        loadMilestones: function () {
+            var _this = this;
+            $.ajax({
+                url: basePath + 'milestones',
+                dataType: 'json'
+            })
+                .done(function (data) {
+                    Vue.set(_this.lanes, "Milestones",
+                        data.map(function (milestone) {
+                            return {
+                                id: milestone.milestoneId,
+                                name: milestone.title,
+                                color: "838383",
+                                html_url: milestone.html_url,
+                                attach_url: milestone.attach_url,
+                                detach_url: milestone.detach_url
+                            };
+                        })
+                    );
+                })
+                .fail(this.ajaxFial);
+        }
+        ,
+        loadPriorities: function () {
+            var _this = this;
+            $.ajax({
+                url: basePath + 'priorities',
+                dataType: 'json'
+            })
+                .done(function (data) {
+                    Vue.set(_this.lanes, "Priorities",
+                        data.map(function (priority) {
+                            return {
+                                id: priority.priorityId,
+                                name: priority.priorityName,
+                                color: priority.color,
+                                html_url: priority.html_url,
+                                attach_url: priority.attach_url,
+                                detach_url: priority.detach_url
+                            };
+                        })
+                    );
+                })
+                .fail(this.ajaxFial);
+        }
+        ,
+        loadAssignees: function () {
+            var _this = this;
+            $.ajax({
+                url: basePath + 'assignees',
+                dataType: 'json'
+            })
+                .done(function (data) {
+                    Vue.set(_this.lanes, "Assignees",
+                        data.map(function (assignee) {
+                            return {
+                                id: assignee.userName,
+                                name: assignee.userName,
+                                color: "838383",
+                                html_url: assignee.html_url,
+                                attach_url: assignee.attach_url,
+                                detach_url: assignee.detach_url
+                            };
+                        })
+                    );
+                })
+                .fail(this.ajaxFial);
+        }
+        ,
         /**
+         * @param {string} key
          * @param {issue} issue 
-         * @param {label} label 
+         * @param {lane} originLane 
+         * @param {lane} targetLane 
          */
-        changeLabel: function (issue, label) {
-            if (!issue || !label)
+        changeLane: function (key, issue, originLane, targetLane) {
+            if (!issue || !originLane || !targetLane)
                 return;
 
-            var noPrefix = true;
-            for (var i = 0; i < issue.labels.length; i++) {
-                if (issue.labels[i].name.startsWith(prefix)) {
-                    if (issue.labels[i].name == label.name)
-                        return;
-                    noPrefix = false;
-                    break;
-                }
-            }
-
-            if (noPrefix && label.name === "")
+            if (issue.metrics[key] == targetLane.id)
                 return;
 
-            var labelUrl = issue.comments_url.replace(/comments$/, "plugin/labelkanban/labels/");
-
-            var oldLabel = null;
-
-            for (i = issue.labels.length - 1; i >= 0; i--) {
-                if (issue.labels[i].name.startsWith(prefix)) {
-                    oldLabel = issue.labels[i];
-
-                    $.ajax({
-                        url: labelUrl + "delete/" + encodeURIComponent(oldLabel.name),
-                        type: "POST"
-                    })
-                        .fail(this.ajaxFial);
-
-                    issue.labels.splice(i, 1);
-
-                }
-            }
-
-            if (label && label.name) {
+            if (originLane.detach_url) {
                 $.ajax({
-                    url: labelUrl + "new/" + encodeURIComponent(label.name),
-                    type: "POST"
+                    url: originLane.detach_url + issue.issueId
                 })
                     .fail(this.ajaxFial);
-
-                issue.labels.push(label);
             }
+
+            if (targetLane.attach_url) {
+                $.ajax({
+                    url: targetLane.attach_url + issue.issueId
+                })
+                    .fail(this.ajaxFial);
+            }
+
+            issue.metrics[key] = targetLane.id;
         }
         ,
         /**
          * @param {issue} issue 
          */
         loadComments: function (issue) {
+
             $.ajax({
                 url: issue.comments_url,
                 dataType: 'json'
@@ -255,7 +441,6 @@ var kanbanApp = new Vue({
                     issue.comments = data;
                 })
                 .fail(this.ajaxFial);
-
         }
         ,
         /**
@@ -273,19 +458,21 @@ var kanbanApp = new Vue({
             }
             this.message = "";
 
+            var _this = this;
+
             $.ajax({
-                url: basePath + 'labels',
+                url: apiBasePath + 'labels',
                 dataType: 'json',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                    "name": prefix + this.newLabelName,
+                    "name": this.prefix + this.newLabelName,
                     "color": this.newLabelColor.slice(1),
                 })
             })
                 .done(function (data) {
-                    kanbanApp.loadLabels();
-                    kanbanApp.toggleLabelEditor();
+                    _this.loadLabels();
+                    _this.toggleLabelEditor();
                 })
                 .fail(this.ajaxFial);
         }
@@ -299,24 +486,41 @@ var kanbanApp = new Vue({
     }
 });
 
-
-
 $(function () {
+    initilizeDummyLanes();
+    kanbanApp.prefixes = prefixes;
+    kanbanApp.prefix = prefixes[0];
+
+    kanbanApp.lanes = {
+        "None":[]
+    };
+    prefixes.map(function (prefix) {
+        kanbanApp.lanes[prefixToLaneKey(prefix)] = [];
+    });
+    kanbanApp.lanes["Milestones"] = [];
+    kanbanApp.lanes["Priorities"] = [];
+    kanbanApp.lanes["Assignees"] = [];
+
+
     kanbanApp.loadLabels();
+    kanbanApp.loadMilestones();
+    kanbanApp.loadPriorities();
+    kanbanApp.loadAssignees();
     kanbanApp.loadIssues();
+
+
 
     $('#kanban-new-label-color-holder').colorpicker({ format: "hex" })
         .on('changeColor', function (event) {
             kanbanApp.newLabelColor = event.color.toString();
         });
-
 });
 
 /**
  */
 
 /**
- * @typedef {object} user
+ * @typedef {Object} user
  * @prop {string} login
  * @prop {string} email
  * @prop {string} type
@@ -329,14 +533,28 @@ $(function () {
  */
 
 /**
- * @typedef {object} label
+ * @typedef {Object} label
+ * @prop {string} userName
+ * @prop {number} labelId
+ * @prop {string} labelName
+ * @prop {string} color
+ * @prop {string} html_url
+ * @prop {string} detach_url
+ * @prop {string} attach_url
+ */
+
+ /**
+ * @typedef {Object} lane
+ * @prop {Object} id
  * @prop {string} name
  * @prop {string} color
- * @prop {string} url
+ * @prop {string} html_url
+ * @prop {string} detach_url
+ * @prop {string} attach_url
  */
 
 /**
- * @typedef {object} comment
+ * @typedef {Object} comment
  * @prop {number} id
  * @prop {user} user
  * @prop {string} body
@@ -346,19 +564,59 @@ $(function () {
  */
 
 /**
- * @typedef {object} issue
- * @prop {number} number
+ * @typedef {Object} issue
+ * @prop {string} userName
+ * @prop {number} issueId
+ * @prop {string} openedUserName
+ * @prop {number} milestoneId
+ * @prop {number} priorityId
+ * @prop {string} assignedUserName
  * @prop {string} title
- * @prop {user} user
- * @prop {label[]} labels
- * @prop {string} state
- * @prop {string} created_at
- * @prop {string} updated_at
- * @prop {string} body
- * @prop {number} id
+ * @prop {string} content
+ * @prop {boolean} closed
+ * @prop {Date} registeredDate
+ * @prop {Date} updatedDate
+ * @prop {boolean} isPullRequest
+ * @prop {[string]} labelNames
+ * @prop {string} html_url 
  * @prop {string} comments_url
- * @prop {string} html_url
+ * 
  * @prop {boolean} show //optional
  * @prop {comment[]} comments //optional
+ * @prop {object} metrics // optional
  */
 
+/**
+ * @typedef {Object} milestone
+ * @prop {string} userName
+ * @prop {number} milestoneId
+ * @prop {string} title
+ * @prop {string} description
+ * @prop {Date} dueDate
+ * @prop {Date} closedDate
+ * @prop {string} html_url
+ * @prop {string} detach_url
+ * @prop {string} attach_url
+ */
+
+/**
+ * @typedef {Object} priority
+ * @prop {string} userName
+ * @prop {number} priorityId
+ * @prop {string} priorityName
+ * @prop {string} description
+ * @prop {boolean} isDefault
+ * @prop {number} ordering
+ * @prop {string} color
+ * @prop {string} html_url
+ * @prop {string} detach_url
+ * @prop {string} attach_url
+*/
+
+ /**
+ * @typedef {Object} assignee
+ * @prop {string} userName
+ * @prop {string} html_url
+ * @prop {string} detach_url
+ * @prop {string} attach_url
+ */
