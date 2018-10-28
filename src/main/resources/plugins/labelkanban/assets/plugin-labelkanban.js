@@ -115,7 +115,7 @@ var kanbanApp = new Vue({
          * @param {boolean} dummyFirst
          * @returns {[lane]}
          */
-        getLanes: function (key, dummyFirst = true) {
+        getLanes: function (key, dummyFirst) {
             if (!key)
                 return [dummyLanes["None"]];
 
@@ -185,7 +185,10 @@ var kanbanApp = new Vue({
         dragend: function (e) {
             e.target.style.opacity = 1;
             this.changeLane(this.colKey, this.draggingItem, this.originColLane, this.targetColLane);
-            this.changeLane(this.rowKey, this.draggingItem, this.originRowLane, this.targetRowLane);
+
+            if(this.colKey != this.rowKey)
+                this.changeLane(this.rowKey, this.draggingItem, this.originRowLane, this.targetRowLane);
+
             this.draggingItem = undefined;
             this.targetColLane = undefined;
             this.targetRowLane = undefined;
@@ -230,7 +233,7 @@ var kanbanApp = new Vue({
          * @returns {object}
          */
         getLaneStyle: function (rowLane, colLane) {
-            var isTarget = (this.targetColLane && this.targetColLane.name == colLane.name) &&
+            var isTarget = rowLane && colLane && (this.targetColLane && this.targetColLane.name == colLane.name) &&
                 (this.targetRowLane && this.targetRowLane.name == rowLane.name)
             return {
                 'background-color': (isTarget ? "#f5f5f5" : "white"),

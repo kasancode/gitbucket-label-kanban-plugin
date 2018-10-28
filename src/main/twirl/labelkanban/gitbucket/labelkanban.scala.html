@@ -97,21 +97,21 @@
 
                     </div>
                 </div>
-                <div class="kanban-column kanban-header" v-for="lane in getLanes(colKey)" v-bind:style="getLaneHeaderStyle(lane)">
+                <div class="kanban-column kanban-header" v-for="lane in getLanes(colKey, true)" v-bind:style="getLaneHeaderStyle(lane)">
                     <div>
                         <a v-bind:href="getLaneUrl(lane)" v-bind:disabled="!lane.name">{{lane.name || "None"}}</a>
                     </div>
                 </div>
             </div>
             <div class="row kanban-row" v-for="rowLane in getLanes(rowKey, false)">
-                <div class="kanban-column kanban-header" v-bind:style="getLaneHeaderStyle(rowLane)">
+                <div class="kanban-column kanban-header kanban-row-header" v-bind:style="getLaneHeaderStyle(rowLane)">
                     <div>
                         <a v-bind:href="getLaneUrl(rowLane)" v-bind:disabled="!rowLane.name">
                             {{rowLane.name || "None"}}
                         </a>
                     </div>
                 </div>
-                <div class="kanban-column" v-for="colLane in getLanes(colKey)" v-on:dragover="dragover(rowLane, colLane)"
+                <div class="kanban-column" v-for="colLane in getLanes(colKey, true)" v-on:dragover="dragover(rowLane, colLane)"
                     v-on:dragenter="dragenter(rowLane, colLane)" dropzone="move" v-bind:style="getLaneStyle(rowLane, colLane)">
                     <div class="kanban-column-body">
 
