@@ -95,7 +95,7 @@ var kanbanApp = new Vue({
         /**@type {string} */
         newLabelColor: "#888888"
         ,
-        /**@type {Object.<string, [lane]}>} */
+        /**@type {Object.<string, lane[]}>} */
         lanes: {}
         ,
         colKey: ""
@@ -113,7 +113,7 @@ var kanbanApp = new Vue({
         /**
          * @param {string} key
          * @param {boolean} dummyFirst
-         * @returns {[lane]}
+         * @returns {lane[]}
          */
         getLanes: function (key, dummyFirst) {
             if (!key)
@@ -130,7 +130,7 @@ var kanbanApp = new Vue({
         }
         ,
         /**
-         * @param {[issue]} issues
+         * @param {issue[]} issues
          * @param {string} key
          * @param {lane} lane
          * @returns {issue[]}
@@ -253,7 +253,7 @@ var kanbanApp = new Vue({
         ,
         /**
          * @param {Object} metrics
-         * @param {[string]} labels
+         * @param {string[]} labels
          */
         addLabelToMetrics: function (metrics, labels) {
             prefixes.forEach(function (prefix) {
@@ -582,7 +582,7 @@ $(function () {
  * @prop {Date} registeredDate
  * @prop {Date} updatedDate
  * @prop {boolean} isPullRequest
- * @prop {[string]} labelNames
+ * @prop {string[]]} labelNames
  * @prop {string} html_url 
  * @prop {string} comments_url
  * 
