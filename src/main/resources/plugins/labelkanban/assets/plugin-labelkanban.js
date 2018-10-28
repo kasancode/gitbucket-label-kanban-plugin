@@ -2,7 +2,7 @@
 
 //var apiBasepath;
 //var basePath;
-//var prefix;
+//var prefixes;
 
 var dummyLanes = {
     "None": {
@@ -333,10 +333,7 @@ var kanbanApp = new Vue({
                         );
                     }
 
-                    // TODO: not good...
-                    _this.showNewLabelEditor = true;
-                    _this.showNewLabelEditor = false;
-
+                    _this.$forceUpdate();
                 })
                 .fail(this.ajaxFial);
         }
