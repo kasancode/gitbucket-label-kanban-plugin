@@ -52,10 +52,13 @@
 
 .kanban-issue-header{
     font-size: 100%;
+    overflow: hidden;
+	text-overflow: ellipsis;
 }
 .kanban-issue-header a{
     color:#333;
 }
+
 .kanban-issue-header .text-muted{
     font-size: 90%;
 }

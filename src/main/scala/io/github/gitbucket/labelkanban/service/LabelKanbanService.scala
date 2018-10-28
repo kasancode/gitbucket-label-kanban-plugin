@@ -25,7 +25,7 @@ trait LabelKanbanService {
         r.userName === owner &&
         r.repositoryName === repository &&
         r.closed === false)
-      .sortBy(r => r.registeredDate)
+      .sortBy(r => r.registeredDate.desc)
       .list
   }
 }

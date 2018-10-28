@@ -98,12 +98,16 @@ var kanbanApp = new Vue({
         /**@type {Object.<string, lane[]}>} */
         lanes: {}
         ,
+        /**@type {string} */
         colKey: ""
         ,
+        /**@type {string} */
         rowKey: ""
         ,
+        /**@type {string} */
         prefix: ""
         ,
+        /**@type {string[]} */
         prefixes: []
         ,
         getLaneKeys: function () {
@@ -328,6 +332,11 @@ var kanbanApp = new Vue({
                             })
                         );
                     }
+
+                    // TODO: not good...
+                    _this.showNewLabelEditor = true;
+                    _this.showNewLabelEditor = false;
+
                 })
                 .fail(this.ajaxFial);
         }
