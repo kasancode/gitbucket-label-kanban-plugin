@@ -26,6 +26,6 @@ class Plugin extends gitbucket.core.plugin.Plugin {
   override val assetsMappings = Seq("/labelkanban" -> "/plugins/labelkanban/assets")
 
   override val repositoryMenus = Seq(
-    (repositoryInfo: RepositoryInfo, context: Context) => Some(Link("labelkanban", "Kanban", "/labalkanban/" + helpers.urlEncode("@"), Some("inbox")))
+    (repositoryInfo: RepositoryInfo, context: Context) => Some(Link("labelkanban", "Kanban", "/labalkanban", Some("inbox")))
   )
 }
