@@ -26,7 +26,27 @@
             <span class="close" aria-label="close" v-on:click="message=''">&times;</span>
         </div>
         <div class="row">
-            <div class="text-right col-md-12">
+            <div class="col-sm-4">
+                <div>
+                    <div class="form-inline">
+                        <label for="col-key" class="col-sm-2">Col.</label>
+                        <div class="col-sm-10">
+                            <select v-model="colKey" class="form-control input-sm" id="col-key">
+                                <option v-for="key in getLaneKeys()" v-bind:value="key">{{key}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-inline">
+                        <label for="row-key" class="col-sm-2">Row</label>
+                        <div class="col-sm-10">
+                            <select v-model="rowKey" class="form-control input-sm" id="row-key">
+                                <option v-for="key in getLaneKeys()" v-bind:value="key">{{key}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-right col-md-8 hidden-xs">
                 <form class="form-inline" autocomplete="off">
                     <span v-show="showNewLabelEditor">
                         <div class="input-group input-group-sm">
@@ -67,32 +87,11 @@
                     </span>
                 </form>
             </div>
+
         </div>
-        <div class="row">
-            <div class="col-sm-6">
-                <div>
-                    <div class="form-inline">
-                        <label for="col-key" class="col-sm-2">Column</label>
-                        <div class="col-sm-10">
-                            <select v-model="colKey" class="form-control input-sm" id="col-key">
-                                <option v-for="key in getLaneKeys()" v-bind:value="key">{{key}}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-inline">
-                        <label for="row-key" class="col-sm-2">Row</label>
-                        <div class="col-sm-10">
-                            <select v-model="rowKey" class="form-control input-sm" id="row-key">
-                                <option v-for="key in getLaneKeys()" v-bind:value="key">{{key}}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="kanban-container">
+        <div class="kanban-container col-md-12">
             <div class="row kanban-row">
-                <div class="kanban-column">
+                <div class="kanban-column kanban-row-header">
                     <div class="kanban-column-body">
 
                     </div>

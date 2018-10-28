@@ -2,7 +2,8 @@
     display: none;
 }
 
-body{
+.kanban-container{
+    margin-top:10px;
 }
 
 .kanban-row{
@@ -13,13 +14,11 @@ body{
 }
 
 .kanban-column{
-    flex:1 !important;
-    min-width: 60px !important;
+    flex:1;
+    min-width: 60px;
     margin:2px;
 
     border: solid 1px #f5f5f5;
-    /* float:left;
-    margin:1%; */
 }
 .kanban-header > div{
     padding: 10px;
@@ -33,6 +32,10 @@ body{
     background-color: #f5f5f5;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.kanban-row-header{
+    flex:0.5 !important;
 }
 
 .kanban-column-body{
@@ -96,14 +99,4 @@ body{
 
 #kanban-new-label-color{
     width: 100px;
-}
-/* 
-#kanban-label-submit{
-    margin-bottom: 0px;
-    margin-left: 4px;
-    margin-right: 4px;
-} */
-
-#kanban-label-toggle{
-    margin-right:30px;
 }
