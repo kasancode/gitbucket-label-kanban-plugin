@@ -184,9 +184,9 @@ var kanbanApp = new Vue({
          */
         dragend: function (e) {
             e.target.style.opacity = 1;
-            this.changeLane(this.colKey, this.draggingItem, this.originColLane, this.targetColLane);
+            var changed = this.changeLane(this.colKey, this.draggingItem, this.originColLane, this.targetColLane);
 
-            if(this.colKey != this.rowKey)
+            if(this.colKey != this.rowKey || !changed)
                 this.changeLane(this.rowKey, this.draggingItem, this.originRowLane, this.targetRowLane);
 
             this.draggingItem = undefined;
@@ -405,14 +405,15 @@ var kanbanApp = new Vue({
          * @param {string} key
          * @param {issue} issue 
          * @param {lane} originLane 
-         * @param {lane} targetLane 
+         * @param {lane} targetLane
+         * @returns {boolean}
          */
         changeLane: function (key, issue, originLane, targetLane) {
             if (!issue || !originLane || !targetLane)
-                return;
+                return false;
 
             if (issue.metrics[key] == targetLane.id)
-                return;
+                return false;
 
             if (originLane.detach_url) {
                 $.ajax({
@@ -429,6 +430,7 @@ var kanbanApp = new Vue({
             }
 
             issue.metrics[key] = targetLane.id;
+            return true;
         }
         ,
         /**
