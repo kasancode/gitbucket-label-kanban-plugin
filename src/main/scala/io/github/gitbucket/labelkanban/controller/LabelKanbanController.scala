@@ -53,12 +53,11 @@ trait LabelKanbanControllerBase extends ControllerBase {
     with ReadableUsersAuthenticator
     with WritableUsersAuthenticator =>
 
-  get("/:owner/:repository/labalkanban/:prefix")(
+  get("/:owner/:repository/labalkanban")(
     referrersOnly {
       repository: RepositoryInfo => {
         html.labelkanban(
-          repository,
-          params("prefix")
+          repository
         )
       }
     }
