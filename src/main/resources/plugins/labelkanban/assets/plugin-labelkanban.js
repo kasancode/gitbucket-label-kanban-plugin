@@ -130,7 +130,7 @@ var kanbanApp = new Vue({
             if (dummyFirst)
                 return [dummyLanes[key]].concat(this.lanes[key]);
             else
-                return this.lanes[key].concat([dummyLanes[key]]);
+                return this.lanes[key].slice().reverse().concat([dummyLanes[key]]);
         }
         ,
         /**

@@ -90,6 +90,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
       getMilestonesWithIssueCount(repository.owner, repository.name)
         .filter(items =>
           items._2 > 0 || items._3 == 0 || (items._1.dueDate.isDefined && items._1.dueDate.get.after(new Date)))
+        .reverse
         .map (items =>
           ApiMilestoneKanban(items._1, RepositoryName(repository))
         ))
@@ -97,7 +98,9 @@ trait LabelKanbanControllerBase extends ControllerBase {
 
   get("/api/v3/repos/:owner/:repository/plugin/labelkanban/priorities")(referrersOnly { repository =>
     JsonFormat(
-      getPriorities(repository.owner, repository.name).map(priority =>
+      getPriorities(repository.owner, repository.name)
+        .reverse
+        .map(priority =>
         ApiPriorityKanban(priority, RepositoryName(repository))
       )
     )
