@@ -117,7 +117,7 @@
                         <div class="kanban-issue panel panel-default" v-for="issue in getIssues(getIssues(issues, rowKey, rowLane), colKey, colLane)"
                             draggable="true" v-on:dragstart="dragstart(issue,rowLane, colLane, $event)" v-on:dragend="dragend">
                             <div class="kanban-issue-header panel-heading">
-                                <a v-bind:href="issue.html_url">{{issue.title}} <span class="text-muted">#{{issue.number}}</span></a>
+                                <a v-bind:href="issue.html_url">{{issue.title}} <span class="text-muted">#{{issue.issueId}}</span></a>
                                 <span class="kanban-expand-button pull-right text-muted" v-on:click="showComments(issue)">
                                     <span v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
                                 </span>
