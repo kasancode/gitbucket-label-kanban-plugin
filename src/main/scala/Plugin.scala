@@ -9,7 +9,7 @@ import io.github.gitbucket.labelkanban.controller.LabelKanbanController
 class Plugin extends gitbucket.core.plugin.Plugin {
   override val pluginId: String = "labelkanban"
   override val pluginName: String = "Label Kanban Plugin"
-  override val description: String = "GitBucket plug-in"
+  override val description: String = "Provide Kanban style issue management."
   override val versions: List[Version] = List(
     new Version("1.0.0"),
     new Version("1.0.1"),
@@ -19,6 +19,7 @@ class Plugin extends gitbucket.core.plugin.Plugin {
     new Version("1.0.5"),
     new Version("2.0.0"),
     new Version("2.0.1"),
+    new Version("2.0.2"),
   )
 
   override val controllers = Seq(
