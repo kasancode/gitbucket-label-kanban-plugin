@@ -15,6 +15,31 @@ var dummyLanes = {
     }
 }
 
+function getCookie(name) {
+    var cookieName = name + '=';
+    var allcookies = document.cookie;
+
+    var position = allcookies.indexOf(cookieName);
+    if (position < 0) {
+        return null;
+    }
+
+    var startIndex = position + cookieName.length;
+
+    var endIndex = allcookies.indexOf(';', startIndex);
+    if (endIndex < 0) {
+        endIndex = allcookies.length;
+    }
+
+    return decodeURIComponent(
+        allcookies.substring(startIndex, endIndex));
+}
+
+function setCookie(name, value) {
+    var maxAge = 60 * 60 * 24 * 30;
+    document.cookie = name + "=" + encodeURIComponent(value) + "; max-age=" + maxAge.toString();
+}
+
 function initilizeDummyLanes() {
     prefixes.map(function (prefix) {
         dummyLanes[prefixToLaneKey(prefix)] = {
@@ -168,6 +193,16 @@ var kanbanApp = new Vue({
     }
     ,
     methods: {
+        saveCookie: function () {
+            setCookie("kanban.rowKey", this.rowKey);
+            setCookie("kanban.colKey", this.colKey);
+        }
+        ,
+        loadCookie: function () {
+            this.rowKey = getCookie("kanban.rowKey") || this.rowKey;
+            this.colKey = getCookie("kanban.colKey") || this.colKey;
+        }
+        ,
         /**
          * @param {issue} issue
          * @param {Lane} row
@@ -190,7 +225,7 @@ var kanbanApp = new Vue({
             e.target.style.opacity = 1;
             var changed = this.changeLane(this.colKey, this.draggingItem, this.originColLane, this.targetColLane);
 
-            if(this.colKey != this.rowKey || !changed)
+            if (this.colKey != this.rowKey || !changed)
                 this.changeLane(this.rowKey, this.draggingItem, this.originRowLane, this.targetRowLane);
 
             this.draggingItem = undefined;
@@ -303,6 +338,9 @@ var kanbanApp = new Vue({
 
                     _this.colKey = _this.getLaneKeys()[1];
                     _this.rowKey = _this.getLaneKeys()[0];
+
+                    _this.loadCookie();
+                    _this.saveCookie();
                 })
                 .fail(this.ajaxFial);
         }
@@ -503,7 +541,7 @@ $(function () {
     kanbanApp.prefix = prefixes[0];
 
     kanbanApp.lanes = {
-        "None":[]
+        "None": []
     };
     prefixes.map(function (prefix) {
         kanbanApp.lanes[prefixToLaneKey(prefix)] = [];
@@ -518,8 +556,6 @@ $(function () {
     kanbanApp.loadPriorities();
     kanbanApp.loadAssignees();
     kanbanApp.loadIssues();
-
-
 
     $('#kanban-new-label-color-holder').colorpicker({ format: "hex" })
         .on('changeColor', function (event) {

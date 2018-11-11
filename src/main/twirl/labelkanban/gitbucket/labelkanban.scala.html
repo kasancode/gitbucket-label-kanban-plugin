@@ -31,7 +31,7 @@
                     <div class="form-inline">
                         <label for="col-key" class="col-sm-2">Col.</label>
                         <div class="col-sm-10">
-                            <select v-model="colKey" class="form-control input-sm" id="col-key">
+                            <select v-model="colKey" class="form-control input-sm" id="col-key" v-on:change="saveCookie()">
                                 <option v-for="key in getLaneKeys()" v-bind:value="key">{{key}}</option>
                             </select>
                         </div>
@@ -39,7 +39,7 @@
                     <div class="form-inline">
                         <label for="row-key" class="col-sm-2">Row</label>
                         <div class="col-sm-10">
-                            <select v-model="rowKey" class="form-control input-sm" id="row-key">
+                            <select v-model="rowKey" class="form-control input-sm" id="row-key" v-on:change="saveCookie()">
                                 <option v-for="key in getLaneKeys()" v-bind:value="key">{{key}}</option>
                             </select>
                         </div>
