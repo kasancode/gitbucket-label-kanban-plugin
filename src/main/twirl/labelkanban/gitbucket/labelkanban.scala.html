@@ -87,49 +87,49 @@
                     </span>
                 </form>
             </div>
-
         </div>
-        <div class="kanban-container col-md-12">
-            <div class="row kanban-row">
-                <div class="kanban-column kanban-row-header">
-                    <div class="kanban-column-body">
-
+        <div v-bind:class="{compact:isCompact()}">
+            <div class="kanban-container col-md-12">
+                <div class="row kanban-row">
+                    <div class="kanban-column kanban-row-header">
+                        <div class="kanban-column-body">
+                        </div>
+                    </div>
+                    <div class="kanban-column kanban-header" v-for="lane in getLanes(colKey, true)" v-bind:style="getLaneHeaderStyle(lane)">
+                        <div>
+                            <a v-bind:href="getLaneUrl(lane)" v-bind:disabled="!lane.name">{{lane.name || "None"}}</a>
+                        </div>
                     </div>
                 </div>
-                <div class="kanban-column kanban-header" v-for="lane in getLanes(colKey, true)" v-bind:style="getLaneHeaderStyle(lane)">
-                    <div>
-                        <a v-bind:href="getLaneUrl(lane)" v-bind:disabled="!lane.name">{{lane.name || "None"}}</a>
+                <div class="row kanban-row" v-for="rowLane in getLanes(rowKey, false)">
+                    <div class="kanban-column kanban-header kanban-row-header" v-bind:style="getLaneHeaderStyle(rowLane)">
+                        <div>
+                            <a v-bind:href="getLaneUrl(rowLane)" v-bind:disabled="!rowLane.name">
+                                {{rowLane.name || "None"}}
+                            </a>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div class="row kanban-row" v-for="rowLane in getLanes(rowKey, false)">
-                <div class="kanban-column kanban-header kanban-row-header" v-bind:style="getLaneHeaderStyle(rowLane)">
-                    <div>
-                        <a v-bind:href="getLaneUrl(rowLane)" v-bind:disabled="!rowLane.name">
-                            {{rowLane.name || "None"}}
-                        </a>
-                    </div>
-                </div>
-                <div class="kanban-column" v-for="colLane in getLanes(colKey, true)" v-on:dragover="dragover(rowLane, colLane)"
-                    v-on:dragenter="dragenter(rowLane, colLane)" dropzone="move" v-bind:style="getLaneStyle(rowLane, colLane)">
-                    <div class="kanban-column-body">
-
-                        <div class="kanban-issue panel panel-default" v-for="issue in getIssues(getIssues(issues, rowKey, rowLane), colKey, colLane)"
-                            draggable="true" v-on:dragstart="dragstart(issue,rowLane, colLane, $event)" v-on:dragend="dragend">
-                            <div class="kanban-issue-header panel-heading">
-                                <a v-bind:href="issue.html_url">{{issue.title}} <span class="text-muted">#{{issue.issueId}}</span></a>
-                                <span class="kanban-expand-button pull-right text-muted" v-on:click="showComments(issue)">
-                                    <span v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
-                                </span>
-                            </div>
-                            <transition-group name="kanban-expand">
-                                <div v-if="issue.show" v-bind:key="issue.issueId" class="panel-body kanban-expand-item">
-                                    <div class="kanban-comment">{{issue.content}}</div>
-                                    <div class="kanban-comment" v-if="issue.comments" v-for="comment in issue.comments">
-                                        {{comment.body}}
-                                    </div>
+                    <div class="kanban-column" v-for="colLane in getLanes(colKey, true)" v-on:dragover="dragover(rowLane, colLane)"
+                        v-on:dragenter="dragenter(rowLane, colLane)" dropzone="move" v-bind:style="getLaneStyle(rowLane, colLane)">
+                        <div class="kanban-column-body">
+                            <div class="kanban-issue panel panel-default" v-for="issue in getIssues(getIssues(issues, rowKey, rowLane), colKey, colLane)"
+                                draggable="true" v-on:dragstart="dragstart(issue,rowLane, colLane, $event)"
+                                v-on:dragend="dragend">
+                                <div class="kanban-issue-header panel-heading">
+                                    <a v-bind:href="issue.html_url">{{issue.title}} <span class="text-muted">#{{issue.issueId}}</span></a>
+                                    <span class="kanban-expand-button pull-right text-muted" v-on:click="showComments(issue)">
+                                        <span v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
+                                    </span>
                                 </div>
-                            </transition-group>
+                                <transition-group name="kanban-expand">
+                                    <div v-if="issue.show" v-bind:key="issue.issueId" class="panel-body issue-body kanban-expand-item">
+                                        <div class="kanban-comment">{{issue.content}}</div>
+                                        <div class="kanban-comment" v-if="issue.comments" v-for="comment in issue.comments">
+                                            {{comment.body}}
+                                        </div>
+                                    </div>
+                                </transition-group>
+                            </div>
                         </div>
                     </div>
                 </div>

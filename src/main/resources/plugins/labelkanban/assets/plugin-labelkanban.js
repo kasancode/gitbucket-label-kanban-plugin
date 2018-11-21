@@ -4,6 +4,9 @@
 //var basePath;
 //var prefixes;
 
+const compactStypeIssuesCount = 10;
+const cookieMaxAge = 30; //day
+
 var dummyLanes = {
     "None": {
         id: -1,
@@ -36,7 +39,7 @@ function getCookie(name) {
 }
 
 function setCookie(name, value) {
-    var maxAge = 60 * 60 * 24 * 30;
+    var maxAge = 60 * 60 * 24 * cookieMaxAge;
     document.cookie = name + "=" + encodeURIComponent(value) + "; max-age=" + maxAge.toString();
 }
 
@@ -191,6 +194,11 @@ var kanbanApp = new Vue({
                 "grid-template-rows": "100px 50px",
                 "grid-template-columns": "150px 1fr"
             };
+        }
+        ,
+        /**@returns {boolean} */
+        isCompact:function(){
+            return this.issues.length > compactStypeIssuesCount;
         }
     }
     ,
