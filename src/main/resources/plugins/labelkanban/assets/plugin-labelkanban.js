@@ -40,7 +40,7 @@ function setCookie(name, value) {
     document.cookie = name + "=" + encodeURIComponent(value) + "; max-age=" + maxAge.toString();
 }
 
-function initilizeDummyLanes() {
+function initializeDummyLanes() {
     prefixes.map(function (prefix) {
         dummyLanes[prefixToLaneKey(prefix)] = {
             id: -1,
@@ -135,6 +135,7 @@ var kanbanApp = new Vue({
         /**@type {string[]} */
         prefixes: []
         ,
+        /**@returns {Object} */
         getLaneKeys: function () {
             return Object.keys(this.lanes);
         }
@@ -183,6 +184,7 @@ var kanbanApp = new Vue({
             return lane.html_url;
         }
         ,
+        /**@returns {Object} */
         getContainerStyle: function () {
             return {
                 "display": "grid",
@@ -536,7 +538,7 @@ var kanbanApp = new Vue({
 });
 
 $(function () {
-    initilizeDummyLanes();
+    initializeDummyLanes();
     kanbanApp.prefixes = prefixes;
     kanbanApp.prefix = prefixes[0];
 
