@@ -58,8 +58,9 @@
 }
 
 .compact .kanban-issue{
-    margin-bottom:5px;
-    margin-top:5px;
+    margin: 5px;
+    float: left;
+    min-width: 45%;
 }
 
 .kanban-issue-header{

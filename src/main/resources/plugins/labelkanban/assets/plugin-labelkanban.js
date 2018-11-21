@@ -4,7 +4,7 @@
 //var basePath;
 //var prefixes;
 
-const compactStypeIssuesCount = 10;
+const compactStyleIssuesCount = 10;
 const cookieMaxAge = 30; //day
 
 var dummyLanes = {
@@ -198,7 +198,7 @@ var kanbanApp = new Vue({
         ,
         /**@returns {boolean} */
         isCompact:function(){
-            return this.issues.length > compactStypeIssuesCount;
+            return this.issues.length > compactStyleIssuesCount;
         }
     }
     ,
