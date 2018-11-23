@@ -8,7 +8,7 @@
 }
 
 .kanban-row{
-    display:flex;
+    display: flex;
     flex-direction: row; 
     margin-left: 10;
     margin-right: 10;
@@ -34,33 +34,51 @@
     text-overflow: ellipsis;
 }
 
-.compact .kanban-header{
-   
-}
-
 .kanban-row-header{
-    flex:0.5 !important;
+    flex: 0.5 !important;
+    max-width: 200px;
 }
 
 .kanban-column-body{
-    padding:10px;
+    padding: 10px;
 }
 .compact .kanban-column-body{
     padding: 5px; 
 }
 
 .kanban-column-header a{
-    color:#333;
+    color: #333;
 }
 
 .kanban-issue{
     cursor: move;
+    max-width: 90%;
 }
 
 .compact .kanban-issue{
-    margin: 5px;
-    float: left;
-    min-width: 45%;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+@media screen and (max-width:767px) {
+    .kanban-issue{
+        margin-left: 5%;
+        margin-right: 5%;
+        float: none;
+    }
+}   
+@media screen and (min-width:768px){
+    .kanban-issue{
+        margin-left: 10px;
+        margin-right: 10px;
+
+        float: left;
+        width: 300px;
+    }
+
+    .compact .kanban-issue{
+        width: 150px;
+    }
 }
 
 .kanban-issue-header{
@@ -69,7 +87,7 @@
     text-overflow: ellipsis;
 }
 .compact .kanban-issue-header{
-    font-size: 90%;
+    font-size: 95%;
     padding: 5px;
 }
 
@@ -79,10 +97,11 @@
 
 .kanban-issue-header .text-muted{
     font-size: 90%;
+    padding-left: 3px;
 }
 .compact .issue-body{
-    font-size:90%;
-    padding:5px;
+    font-size: 90%;
+    padding: 5px;
 }
 
 .kanban-expand-enter-active,
@@ -110,11 +129,12 @@
 
 .kanban-expand-button{
     cursor: pointer;
+    margin-left: 8px;
 }
 
 .kanban-comment{
     margin-bottom: 10px;
-    border-left :solid 2px silver;
+    border-left: solid 2px silver;
     padding-left: 8px;
     overflow: hidden;
 	text-overflow: ellipsis;
