@@ -2,7 +2,6 @@
     display: none;
 }
 
-
 .kanban-container{
     margin-top:10px;
 }
@@ -15,20 +14,21 @@
 }
 
 .kanban-column{
-    flex:1;
-    min-width: 60px;
-    margin:2px;
+    flex: 1;
+    min-width: 100px;
+    margin: 2px;
     border: solid 1px #f5f5f5;
 }
+
 .kanban-header > div{
     padding: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .kanban-header{
-    border:0px;
-    margin-left: 3px;
-    margin-right: 3px;
-    font-size: 120%;
+    border: 0;
+    font-size: 110%;
     background-color: #f5f5f5;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -36,12 +36,13 @@
 
 .kanban-row-header{
     flex: 0.5 !important;
-    max-width: 200px;
+    max-width: 300px;
 }
 
 .kanban-column-body{
     padding: 10px;
 }
+
 .compact .kanban-column-body{
     padding: 5px; 
 }
@@ -52,26 +53,24 @@
 
 .kanban-issue{
     cursor: move;
-    max-width: 90%;
+    max-width: calc(100% - 20px);
+    margin-left: 10px;
+    margin-right: 10px;
 }
 
 .compact .kanban-issue{
-    margin-top: 5px;
-    margin-bottom: 5px;
+    max-width: calc(100% - 10px);
+    margin: 5px;
 }
 
 @media screen and (max-width:767px) {
     .kanban-issue{
-        margin-left: 5%;
-        margin-right: 5%;
         float: none;
     }
-}   
+}
+
 @media screen and (min-width:768px){
     .kanban-issue{
-        margin-left: 10px;
-        margin-right: 10px;
-
         float: left;
         width: 300px;
     }
@@ -86,6 +85,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
 .compact .kanban-issue-header{
     font-size: 95%;
     padding: 5px;
@@ -99,6 +99,7 @@
     font-size: 90%;
     padding-left: 3px;
 }
+
 .compact .issue-body{
     font-size: 90%;
     padding: 5px;
