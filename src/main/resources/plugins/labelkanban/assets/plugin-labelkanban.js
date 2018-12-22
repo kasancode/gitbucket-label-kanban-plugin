@@ -197,7 +197,7 @@ var kanbanApp = new Vue({
         }
         ,
         /**@returns {boolean} */
-        isCompact:function(){
+        isCompact: function () {
             return this.issues.length > compactStyleIssuesCount;
         }
     }
@@ -324,135 +324,127 @@ var kanbanApp = new Vue({
             })
         }
         ,
-        loadIssues: function () {
-            var _this = this;
-
+        loadDataSet: function () {
             $.ajax({
-                url: basePath + 'issues',
+                url: basePath + 'dataset',
                 dataType: 'json'
             })
                 .done(function (data) {
-                    _this.issues = data.filter(function (issue) {
-                        issue.show = false;
-                        issue.comments = null;
-                        issue.metrics = {};
+                    this.setupLabels(data.labels);
+                    this.setupMilestones(data.milestones);
+                    this.setupPriorities(data.priorities);
+                    this.setupAssignees(data.assignees);
+                    this.setupIssues(data.issues);
 
-                        issue.metrics["None"] = -1;
-                        _this.addLabelToMetrics(issue.metrics, issue.labelNames)
-                        issue.metrics["Milestones"] = issue.milestoneId;
-                        issue.metrics["Priorities"] = issue.priorityId;
-                        issue.metrics["Assignees"] = issue.assignedUserName;
+                    this.colKey = this.getLaneKeys()[1];
+                    this.rowKey = this.getLaneKeys()[0];
 
-                        return !issue.closed;
-                    });
+                    this.loadCookie();
+                    this.saveCookie();
 
-                    _this.colKey = _this.getLaneKeys()[1];
-                    _this.rowKey = _this.getLaneKeys()[0];
-
-                    _this.loadCookie();
-                    _this.saveCookie();
-                })
+                    this.$forceUpdate();
+                }.bind(this))
                 .fail(this.ajaxFial);
         }
         ,
-        loadLabels: function () {
-            var _this = this;
+        loadLabels: function(){
             $.ajax({
                 url: basePath + 'labels',
                 dataType: 'json'
             })
-                .done(function (data) {
-                    for (var i = 0; i < prefixes.length; i++) {
-                        var prefix = prefixes[i];
+            .done(function(data){
+                this.setupLabels(data);
+                this.$forceUpdate();
+            }.bind(this))
+            .fail(this.ajaxFial);
 
-                        Vue.set(_this.lanes, prefixToLaneKey(prefix),
-                            data.filter(function (label) {
-                                return label.labelName.startsWith(prefix);
-                            }).map(function (label) {
-                                return {
-                                    id: label.labelId,
-                                    name: label.labelName,
-                                    color: label.color,
-                                    html_url: label.html_url,
-                                    attach_url: label.attach_url,
-                                    detach_url: label.detach_url
-                                };
-                            })
-                        );
-                    }
+        }
+        ,
+        /**@param {issue[]} issues */
+        setupIssues: function (issues) {
+            this.issues = issues.filter(function (issue) {
+                issue.show = false;
+                issue.comments = null;
+                issue.metrics = {};
 
-                    _this.$forceUpdate();
-                })
-                .fail(this.ajaxFial);
+                issue.metrics["None"] = -1;
+                this.addLabelToMetrics(issue.metrics, issue.labelNames)
+                issue.metrics["Milestones"] = issue.milestoneId;
+                issue.metrics["Priorities"] = issue.priorityId;
+                issue.metrics["Assignees"] = issue.assignedUserName;
+
+                return !issue.closed;
+            }.bind(this));
         }
         ,
-        loadMilestones: function () {
-            var _this = this;
-            $.ajax({
-                url: basePath + 'milestones',
-                dataType: 'json'
-            })
-                .done(function (data) {
-                    Vue.set(_this.lanes, "Milestones",
-                        data.map(function (milestone) {
-                            return {
-                                id: milestone.milestoneId,
-                                name: milestone.title,
-                                color: "838383",
-                                html_url: milestone.html_url,
-                                attach_url: milestone.attach_url,
-                                detach_url: milestone.detach_url
-                            };
-                        })
-                    );
-                })
-                .fail(this.ajaxFial);
+        /**@param {label[]} labels */
+        setupLabels: function (labels) {
+            for (var i = 0; i < prefixes.length; i++) {
+                var prefix = prefixes[i];
+
+                Vue.set(this.lanes, prefixToLaneKey(prefix),
+                    labels.filter(function (label) {
+                        return label.labelName.startsWith(prefix);
+                    }).map(function (label) {
+                        return {
+                            id: label.labelId,
+                            name: label.labelName,
+                            color: label.color,
+                            html_url: label.html_url,
+                            attach_url: label.attach_url,
+                            detach_url: label.detach_url
+                        };
+                    })
+                );
+            }
         }
         ,
-        loadPriorities: function () {
-            var _this = this;
-            $.ajax({
-                url: basePath + 'priorities',
-                dataType: 'json'
-            })
-                .done(function (data) {
-                    Vue.set(_this.lanes, "Priorities",
-                        data.map(function (priority) {
-                            return {
-                                id: priority.priorityId,
-                                name: priority.priorityName,
-                                color: priority.color,
-                                html_url: priority.html_url,
-                                attach_url: priority.attach_url,
-                                detach_url: priority.detach_url
-                            };
-                        })
-                    );
+        /**@param {milestone[]} milestones */
+        setupMilestones: function (milestones) {
+            Vue.set(this.lanes, "Milestones",
+                milestones.map(function (milestone) {
+                    return {
+                        id: milestone.milestoneId,
+                        name: milestone.title,
+                        color: "838383",
+                        html_url: milestone.html_url,
+                        attach_url: milestone.attach_url,
+                        detach_url: milestone.detach_url
+                    };
                 })
-                .fail(this.ajaxFial);
+            );
         }
         ,
-        loadAssignees: function () {
-            var _this = this;
-            $.ajax({
-                url: basePath + 'assignees',
-                dataType: 'json'
-            })
-                .done(function (data) {
-                    Vue.set(_this.lanes, "Assignees",
-                        data.map(function (assignee) {
-                            return {
-                                id: assignee.userName,
-                                name: assignee.userName,
-                                color: "838383",
-                                html_url: assignee.html_url,
-                                attach_url: assignee.attach_url,
-                                detach_url: assignee.detach_url
-                            };
-                        })
-                    );
+        /**@param {priority[]} priorities */
+        setupPriorities: function (priorities) {
+            Vue.set(this.lanes, "Priorities",
+                priorities.map(function (priority) {
+                    return {
+                        id: priority.priorityId,
+                        name: priority.priorityName,
+                        color: priority.color,
+                        html_url: priority.html_url,
+                        attach_url: priority.attach_url,
+                        detach_url: priority.detach_url
+                    };
                 })
-                .fail(this.ajaxFial);
+            );
+        }
+        ,
+        /**@param {assignee[]} assignees */
+        setupAssignees: function (assignees) {
+            Vue.set(this.lanes, "Assignees",
+                assignees.map(function (assignee) {
+                    return {
+                        id: assignee.userName,
+                        name: assignee.userName,
+                        color: "838383",
+                        html_url: assignee.html_url,
+                        attach_url: assignee.attach_url,
+                        detach_url: assignee.detach_url
+                    };
+                })
+            );
         }
         ,
         /**
@@ -517,8 +509,6 @@ var kanbanApp = new Vue({
             }
             this.message = "";
 
-            var _this = this;
-
             $.ajax({
                 url: apiBasePath + 'labels',
                 dataType: 'json',
@@ -530,9 +520,9 @@ var kanbanApp = new Vue({
                 })
             })
                 .done(function (data) {
-                    _this.loadLabels();
-                    _this.toggleLabelEditor();
-                })
+                    this.loadLabels();
+                    this.toggleLabelEditor();
+                }.bind(this))
                 .fail(this.ajaxFial);
         }
         ,
@@ -560,12 +550,7 @@ $(function () {
     kanbanApp.lanes["Priorities"] = [];
     kanbanApp.lanes["Assignees"] = [];
 
-
-    kanbanApp.loadLabels();
-    kanbanApp.loadMilestones();
-    kanbanApp.loadPriorities();
-    kanbanApp.loadAssignees();
-    kanbanApp.loadIssues();
+    kanbanApp.loadDataSet();
 
     $('#kanban-new-label-color-holder').colorpicker({ format: "hex" })
         .on('changeColor', function (event) {
@@ -600,15 +585,15 @@ $(function () {
  * @prop {string} attach_url
  */
 
- /**
- * @typedef {Object} lane
- * @prop {Object} id
- * @prop {string} name
- * @prop {string} color
- * @prop {string} html_url
- * @prop {string} detach_url
- * @prop {string} attach_url
- */
+/**
+* @typedef {Object} lane
+* @prop {Object} id
+* @prop {string} name
+* @prop {string} color
+* @prop {string} html_url
+* @prop {string} detach_url
+* @prop {string} attach_url
+*/
 
 /**
  * @typedef {Object} comment
@@ -635,9 +620,9 @@ $(function () {
  * @prop {Date} updatedDate
  * @prop {boolean} isPullRequest
  * @prop {string[]]} labelNames
- * @prop {string} html_url 
+ * @prop {string} html_url
  * @prop {string} comments_url
- * 
+ *
  * @prop {boolean} show //optional
  * @prop {comment[]} comments //optional
  * @prop {object} metrics // optional
@@ -670,10 +655,19 @@ $(function () {
  * @prop {string} attach_url
 */
 
- /**
- * @typedef {Object} assignee
- * @prop {string} userName
- * @prop {string} html_url
- * @prop {string} detach_url
- * @prop {string} attach_url
+/**
+* @typedef {Object} assignee
+* @prop {string} userName
+* @prop {string} html_url
+* @prop {string} detach_url
+* @prop {string} attach_url
+*/
+
+/**
+ * @typedef {Object} dataset
+ * @prop {issue[]} issues
+ * @prop {assignee[]} assignees
+ * @prop {label[]} labels
+ * @prop {milestone[]} milestones
+ * @prop {priority[]} priorities
  */
