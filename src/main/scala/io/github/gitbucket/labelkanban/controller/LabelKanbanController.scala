@@ -86,22 +86,22 @@ trait LabelKanbanControllerBase extends ControllerBase {
           .map(label =>
             ApiLabelKanban(label, RepositoryName(repository))
           )
-          ,
-          getMilestonesWithIssueCount(repository.owner, repository.name)
-            .filter(items =>
-              items._2 > 0 || items._3 == 0 || (items._1.dueDate.isDefined && items._1.dueDate.get.after(new Date)))
-            .reverse
-            .map(items =>
-              ApiMilestoneKanban(items._1, RepositoryName(repository))
-            )
-          ,
-          getPriorities(repository.owner, repository.name)
-            .reverse
-            .map(priority =>
-              ApiPriorityKanban(priority, RepositoryName(repository))
-            )
-        )(RepositoryName(repository))
-      )
+        ,
+        getMilestonesWithIssueCount(repository.owner, repository.name)
+          .filter(items =>
+            items._2 > 0 || items._3 == 0 || (items._1.dueDate.isDefined && items._1.dueDate.get.after(new Date)))
+          .reverse
+          .map(items =>
+            ApiMilestoneKanban(items._1, RepositoryName(repository))
+          )
+        ,
+        getPriorities(repository.owner, repository.name)
+          .reverse
+          .map(priority =>
+            ApiPriorityKanban(priority, RepositoryName(repository))
+          )
+      )(RepositoryName(repository))
+    )
   }
 
   )
