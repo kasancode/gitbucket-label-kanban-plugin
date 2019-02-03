@@ -83,6 +83,8 @@ trait LabelKanbanControllerBase extends ControllerBase {
           )
         ,
         getLabels(repository.owner, repository.name)
+          .sortBy(label =>
+            label.labelId)
           .map(label =>
             ApiLabelKanban(label, RepositoryName(repository))
           )
@@ -123,7 +125,9 @@ trait LabelKanbanControllerBase extends ControllerBase {
 
   get("/api/v3/repos/:owner/:repository/plugin/labelkanban/labels")(referrersOnly { repository =>
     JsonFormat(
-      getLabels(repository.owner, repository.name).map(label =>
+      getLabels(repository.owner, repository.name)
+        .sortBy(label => label.labelId)
+        .map(label =>
         ApiLabelKanban(label, RepositoryName(repository))
       ))
   })
