@@ -6,10 +6,8 @@ import gitbucket.core.view.helpers
 
 case class ApiDataSetKanban(
                              issues: List[ApiIssueKanban],
-                             assignees: List[ApiAssigneeKanban],
-                             labels: List[ApiLabelKanban],
-                             milestones: List[ApiMilestoneKanban],
-                             priorities: List[ApiPriorityKanban]
+                             lanes: Map[String,List[ApiLaneKanban]],
+                             dummyLanes: Map[String, ApiLaneKanban]
                            )(repositoryName: RepositoryName)
   extends FieldSerializable {
 

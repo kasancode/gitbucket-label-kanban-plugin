@@ -7,16 +7,7 @@
 const compactStyleIssuesCount = 10;
 const cookieMaxAge = 30; //day
 
-var dummyLanes = {
-    "None": {
-        id: -1,
-        name: "",
-        color: "333333",
-        html_url: "",
-        detach_url: "",
-        attach_url: ""
-    }
-}
+var dummyLanes = {}
 
 function getCookie(name) {
     var cookieName = name + '=';
@@ -43,39 +34,6 @@ function setCookie(name, value) {
     document.cookie = name + "=" + encodeURIComponent(value) + "; max-age=" + maxAge.toString();
 }
 
-function initializeDummyLanes() {
-    prefixes.map(function (prefix) {
-        dummyLanes[prefixToLaneKey(prefix)] = {
-            id: -1,
-            name: "",
-            color: "333333",
-            html_url: "",
-            detach_url: "",
-            attach_url: ""
-        }
-    });
-    dummyLanes["Milestones"] = {
-        id: -1,
-        name: "",
-        color: "333333",
-        detach_url: "",
-        attach_url: basePath + "milestone/0/switch/issue/"
-    };
-    dummyLanes["Priorities"] = {
-        id: -1,
-        name: "",
-        color: "333333",
-        detach_url: "",
-        attach_url: basePath + "priority/0/switch/issue/"
-    };
-    dummyLanes["Assignees"] = {
-        id: "",
-        name: "",
-        color: "333333",
-        detach_url: "",
-        attach_url: basePath + "assignee/detach/issue/"
-    };
-}
 
 if (!String.prototype.startsWith) {
     String.prototype.startsWith = function (prefix) {
@@ -282,7 +240,8 @@ var kanbanApp = new Vue({
          * @returns {object}
          */
         getLaneStyle: function (rowLane, colLane) {
-            var isTarget = rowLane && colLane && (this.targetColLane && this.targetColLane.name == colLane.name) &&
+            var isTarget = rowLane && colLane &&
+                (this.targetColLane && this.targetColLane.name == colLane.name) &&
                 (this.targetRowLane && this.targetRowLane.name == rowLane.name)
             return {
                 'background-color': (isTarget ? "#f5f5f5" : "white"),
@@ -330,11 +289,9 @@ var kanbanApp = new Vue({
                 dataType: 'json'
             })
                 .done(function (data) {
-                    this.setupLabels(data.labels);
-                    this.setupMilestones(data.milestones);
-                    this.setupPriorities(data.priorities);
-                    this.setupAssignees(data.assignees);
-                    this.setupIssues(data.issues);
+                    dummyLanes = data.dummyLanes;
+                    this.lanes = data.lanes;
+                    this.issues = data.issues;
 
                     this.colKey = this.getLaneKeys()[1];
                     this.rowKey = this.getLaneKeys()[0];
@@ -358,93 +315,6 @@ var kanbanApp = new Vue({
             }.bind(this))
             .fail(this.ajaxFial);
 
-        }
-        ,
-        /**@param {issue[]} issues */
-        setupIssues: function (issues) {
-            this.issues = issues.filter(function (issue) {
-                issue.show = false;
-                issue.comments = null;
-                issue.metrics = {};
-
-                issue.metrics["None"] = -1;
-                this.addLabelToMetrics(issue.metrics, issue.labelNames)
-                issue.metrics["Milestones"] = issue.milestoneId;
-                issue.metrics["Priorities"] = issue.priorityId;
-                issue.metrics["Assignees"] = issue.assignedUserName;
-
-                return !issue.closed;
-            }.bind(this));
-        }
-        ,
-        /**@param {label[]} labels */
-        setupLabels: function (labels) {
-            for (var i = 0; i < prefixes.length; i++) {
-                var prefix = prefixes[i];
-
-                Vue.set(this.lanes, prefixToLaneKey(prefix),
-                    labels.filter(function (label) {
-                        return label.labelName.startsWith(prefix);
-                    }).map(function (label) {
-                        return {
-                            id: label.labelId,
-                            name: label.labelName,
-                            color: label.color,
-                            html_url: label.html_url,
-                            attach_url: label.attach_url,
-                            detach_url: label.detach_url
-                        };
-                    })
-                );
-            }
-        }
-        ,
-        /**@param {milestone[]} milestones */
-        setupMilestones: function (milestones) {
-            Vue.set(this.lanes, "Milestones",
-                milestones.map(function (milestone) {
-                    return {
-                        id: milestone.milestoneId,
-                        name: milestone.title,
-                        color: "838383",
-                        html_url: milestone.html_url,
-                        attach_url: milestone.attach_url,
-                        detach_url: milestone.detach_url
-                    };
-                })
-            );
-        }
-        ,
-        /**@param {priority[]} priorities */
-        setupPriorities: function (priorities) {
-            Vue.set(this.lanes, "Priorities",
-                priorities.map(function (priority) {
-                    return {
-                        id: priority.priorityId,
-                        name: priority.priorityName,
-                        color: priority.color,
-                        html_url: priority.html_url,
-                        attach_url: priority.attach_url,
-                        detach_url: priority.detach_url
-                    };
-                })
-            );
-        }
-        ,
-        /**@param {assignee[]} assignees */
-        setupAssignees: function (assignees) {
-            Vue.set(this.lanes, "Assignees",
-                assignees.map(function (assignee) {
-                    return {
-                        id: assignee.userName,
-                        name: assignee.userName,
-                        color: "838383",
-                        html_url: assignee.html_url,
-                        attach_url: assignee.attach_url,
-                        detach_url: assignee.detach_url
-                    };
-                })
-            );
         }
         ,
         /**
@@ -536,19 +406,8 @@ var kanbanApp = new Vue({
 });
 
 $(function () {
-    initializeDummyLanes();
     kanbanApp.prefixes = prefixes;
     kanbanApp.prefix = prefixes[0];
-
-    kanbanApp.lanes = {
-        "None": []
-    };
-    prefixes.map(function (prefix) {
-        kanbanApp.lanes[prefixToLaneKey(prefix)] = [];
-    });
-    kanbanApp.lanes["Milestones"] = [];
-    kanbanApp.lanes["Priorities"] = [];
-    kanbanApp.lanes["Assignees"] = [];
 
     kanbanApp.loadDataSet();
 
@@ -629,45 +488,9 @@ $(function () {
  */
 
 /**
- * @typedef {Object} milestone
- * @prop {string} userName
- * @prop {number} milestoneId
- * @prop {string} title
- * @prop {string} description
- * @prop {Date} dueDate
- * @prop {Date} closedDate
- * @prop {string} html_url
- * @prop {string} detach_url
- * @prop {string} attach_url
- */
-
-/**
- * @typedef {Object} priority
- * @prop {string} userName
- * @prop {number} priorityId
- * @prop {string} priorityName
- * @prop {string} description
- * @prop {boolean} isDefault
- * @prop {number} ordering
- * @prop {string} color
- * @prop {string} html_url
- * @prop {string} detach_url
- * @prop {string} attach_url
-*/
-
-/**
-* @typedef {Object} assignee
-* @prop {string} userName
-* @prop {string} html_url
-* @prop {string} detach_url
-* @prop {string} attach_url
-*/
-
-/**
  * @typedef {Object} dataset
  * @prop {issue[]} issues
- * @prop {assignee[]} assignees
- * @prop {label[]} labels
- * @prop {milestone[]} milestones
- * @prop {priority[]} priorities
+ * @prop {Object} metrics
+ * @prop {Lane[]} lanes
+ * @prop {Lane[]} dummyLanes
  */

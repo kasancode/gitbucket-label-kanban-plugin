@@ -18,7 +18,7 @@ case class ApiMilestoneKanban(
                        ) extends FieldSerializable
 {
   val html_url = ApiPath(s"/${repositoryName.fullName}/issues?milestone=${helpers.urlEncode(title)}&state=open")
-  val detach_url = ""
+  val detach_url = ApiPath("")
   val attach_url =  ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/milestone/${milestoneId}/switch/issue/")
 }
 
