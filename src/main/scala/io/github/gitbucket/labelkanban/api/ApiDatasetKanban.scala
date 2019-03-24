@@ -4,9 +4,11 @@ import gitbucket.core.api.{ApiPath, FieldSerializable}
 import gitbucket.core.util.RepositoryName
 import gitbucket.core.view.helpers
 
+import scala.collection.mutable
+
 case class ApiDataSetKanban(
                              issues: List[ApiIssueKanban],
-                             lanes: Map[String,List[ApiLaneKanban]],
+                             lanes: mutable.LinkedHashMap[String,List[ApiLaneKanban]],
                              dummyLanes: Map[String, ApiLaneKanban]
                            )(repositoryName: RepositoryName)
   extends FieldSerializable {

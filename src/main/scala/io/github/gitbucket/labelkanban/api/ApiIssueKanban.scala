@@ -7,6 +7,8 @@ import gitbucket.core.model.{Issue, Label}
 import gitbucket.core.util.RepositoryName
 import gitbucket.core.view.helpers
 
+import scala.collection.mutable
+
 case class ApiIssueKanban(
                            userName: String,
                            issueId: Int,
@@ -25,7 +27,7 @@ case class ApiIssueKanban(
                            show: Boolean = false,
                          )(repositoryName: RepositoryName)
   extends FieldSerializable {
-  val html_url = ApiPath(s"/${repositoryName.fullName}/issues/${issueId}")
+  val htmlUrl = ApiPath(s"/${repositoryName.fullName}/issues/${issueId}")
   val comments_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/issues/${issueId}/comments")
 }
 

@@ -107,6 +107,9 @@ var kanbanApp = new Vue({
          * @returns {lane[]}
          */
         getLanes: function (key, dummyFirst) {
+            if(!dummyLanes || !this.lanes)
+                return null;
+
             if (!key)
                 return [dummyLanes["None"]];
 
@@ -142,7 +145,7 @@ var kanbanApp = new Vue({
         ,
         /**@param {lane} lane */
         getLaneUrl: function (lane) {
-            return lane.html_url;
+            return lane ? lane.htmlUrl : "";
         }
         ,
         /**@returns {Object} */
@@ -259,30 +262,6 @@ var kanbanApp = new Vue({
             }
         }
         ,
-        /**
-         * @param {Object} metrics
-         * @param {string[]} labels
-         */
-        addLabelToMetrics: function (metrics, labels) {
-            prefixes.forEach(function (prefix) {
-                for (var i = 0; i < labels.length; i++) {
-                    var label = labels[i];
-                    if (label.startsWith(prefix)) {
-                        var item = kanbanApp.lanes[prefixToLaneKey(prefix)].filter(function (l) {
-                            return l.name == label;
-                        });
-
-                        var id = (item && item[0] && item[0].id) ? item[0].id : -1;
-                        metrics[prefixToLaneKey(prefix)] = id;
-                        break;
-                    }
-                }
-
-                if (Object.keys(metrics).indexOf(prefixToLaneKey(prefix)) < 0)
-                    metrics[prefixToLaneKey(prefix)] = -1;
-            })
-        }
-        ,
         loadDataSet: function () {
             $.ajax({
                 url: basePath + 'dataset',
@@ -331,16 +310,9 @@ var kanbanApp = new Vue({
             if (issue.metrics[key] == targetLane.id)
                 return false;
 
-            if (originLane.detach_url) {
+            if (targetLane.switchUrl) {
                 $.ajax({
-                    url: originLane.detach_url + issue.issueId
-                })
-                    .fail(this.ajaxFial);
-            }
-
-            if (targetLane.attach_url) {
-                $.ajax({
-                    url: targetLane.attach_url + issue.issueId
+                    url: targetLane.switchUrl + issue.issueId
                 })
                     .fail(this.ajaxFial);
             }
@@ -390,7 +362,7 @@ var kanbanApp = new Vue({
                 })
             })
                 .done(function (data) {
-                    this.loadLabels();
+                    this.loadDataSet();
                     this.toggleLabelEditor();
                 }.bind(this))
                 .fail(this.ajaxFial);
@@ -409,12 +381,12 @@ $(function () {
     kanbanApp.prefixes = prefixes;
     kanbanApp.prefix = prefixes[0];
 
-    kanbanApp.loadDataSet();
-
     $('#kanban-new-label-color-holder').colorpicker({ format: "hex" })
         .on('changeColor', function (event) {
             kanbanApp.newLabelColor = event.color.toString();
         });
+
+    kanbanApp.loadDataSet();
 });
 
 /**
@@ -429,7 +401,7 @@ $(function () {
  * @prop {string} created_at
  * @prop {number} id
  * @prop {string} url
- * @prop {string} html_url
+ * @prop {string} htmlUrl
  * @prop {string} avatar_url
  */
 
@@ -439,9 +411,8 @@ $(function () {
  * @prop {number} labelId
  * @prop {string} labelName
  * @prop {string} color
- * @prop {string} html_url
- * @prop {string} detach_url
- * @prop {string} attach_url
+ * @prop {string} htmlUrl
+ * @prop {string} switchUrl
  */
 
 /**
@@ -449,9 +420,8 @@ $(function () {
 * @prop {Object} id
 * @prop {string} name
 * @prop {string} color
-* @prop {string} html_url
-* @prop {string} detach_url
-* @prop {string} attach_url
+* @prop {string} htmlUrl
+* @prop {string} switchUrl
 */
 
 /**
@@ -461,7 +431,7 @@ $(function () {
  * @prop {string} body
  * @prop {string} created_at
  * @prop {string} updated_at
- * @prop {string} html_url
+ * @prop {string} htmlUrl
  */
 
 /**
@@ -479,7 +449,7 @@ $(function () {
  * @prop {Date} updatedDate
  * @prop {boolean} isPullRequest
  * @prop {string[]]} labelNames
- * @prop {string} html_url
+ * @prop {string} htmlUrl
  * @prop {string} comments_url
  *
  * @prop {boolean} show //optional

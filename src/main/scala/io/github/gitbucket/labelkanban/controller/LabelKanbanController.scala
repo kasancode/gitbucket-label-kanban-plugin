@@ -14,6 +14,8 @@ import java.util.Date
 
 import gitbucket.core.model.{Label, Milestone, Priority}
 
+import scala.collection.mutable
+
 class LabelKanbanController extends LabelKanbanControllerBase
   with LabelKanbanService
   with RepositoryService
@@ -206,9 +208,8 @@ trait LabelKanbanControllerBase extends ControllerBase {
       color = "333333",
       iconImage = "",
       icon = "",
-      html_url = "",
-      detach_url = "",
-      attach_url = key match {
+      htmlUrl = "",
+      switchUrl = key match {
         case s if s.length > 0 =>
           ApiPath(s"/api/v3/repos/${RepositoryName(repository).fullName}/plugin/labelkanban/${key}/-/switch/issue/").path
         case _ =>
@@ -217,9 +218,10 @@ trait LabelKanbanControllerBase extends ControllerBase {
     )(RepositoryName(repository))
   }
 
-  def getLanes(repository: RepositoryInfo): Map[String, List[ApiLaneKanban]] = {
+  def getLanes(repository: RepositoryInfo): mutable.LinkedHashMap[String, List[ApiLaneKanban]] = {
     val prefix = "@"
-    Map(
+
+    mutable.LinkedHashMap(
       "None" ->
         List[ApiLaneKanban](),
 
@@ -232,6 +234,12 @@ trait LabelKanbanControllerBase extends ControllerBase {
           .map(label =>
             ApiLaneKanban(label, RepositoryName(repository))
           ),
+      "Priorities" ->
+        getPriorities(repository.owner, repository.name)
+          .reverse
+          .map(priority =>
+            ApiLaneKanban(priority, RepositoryName(repository))
+          ),
       "Milestones" ->
         getMilestonesWithIssueCount(repository.owner, repository.name)
           .filter(items =>
@@ -239,12 +247,6 @@ trait LabelKanbanControllerBase extends ControllerBase {
           .reverse
           .map(items =>
             ApiLaneKanban(items._1, RepositoryName(repository))
-          ),
-      "Priorities" ->
-        getPriorities(repository.owner, repository.name)
-          .reverse
-          .map(priority =>
-            ApiLaneKanban(priority, RepositoryName(repository))
           ),
       "Assignees" ->
         getAssignableUserNames(repository.owner, repository.name)
