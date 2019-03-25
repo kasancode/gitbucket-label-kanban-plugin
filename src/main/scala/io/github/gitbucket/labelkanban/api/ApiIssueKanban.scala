@@ -33,7 +33,7 @@ case class ApiIssueKanban(
 
 
 object ApiIssueKanban {
-  def apply(issue: Issue, labels:List[Label], repositoryName: RepositoryName): ApiIssueKanban =
+  def apply(issue: Issue, labels: List[Label], repositoryName: RepositoryName): ApiIssueKanban =
     ApiIssueKanban(
       userName = issue.userName,
       issueId = issue.issueId,
@@ -56,21 +56,50 @@ object ApiIssueKanban {
       )
     )(repositoryName)
 
-  def createMetrics(
-                     milestoneId: Option[Int],
-                     priorityId: Option[Int],
-                     assignedUserName: Option[String],
-                     labels:List[Label]
-                   ) : Map[String, String] = {
-    Map(
-      "None" -> "0",
-      "Label:@" -> labels.find(_.labelName.startsWith("@")).map(_.labelId).getOrElse(0).toString,
-      "Milestones"->milestoneId.getOrElse(0).toString(),
-      "Priorities"->priorityId.getOrElse(0).toString(),
-      "Assignees"->(assignedUserName match {
-        case Some(s) if s.length > 0 => s
-        case _ => "-"
-      })
-    )
-  }
+  def applySummary(issue: Issue, labels: List[Label]): ApiIssueKanban =
+    ApiIssueKanban(
+      userName = issue.userName,
+      issueId = issue.issueId,
+      openedUserName = issue.openedUserName,
+      milestoneId = issue.milestoneId.getOrElse(-1),
+      priorityId = issue.priorityId.getOrElse(-1),
+      assignedUserName = issue.assignedUserName.getOrElse(""),
+      title = issue.title,
+      content = issue.content.getOrElse(""),
+      closed = issue.closed,
+      registeredDate = issue.registeredDate,
+      updatedDate = issue.updatedDate,
+      isPullRequest = issue.isPullRequest,
+      labelNames = labels.map(_.labelName),
+      metrics = createSummaryMetrics(
+        labels = labels,
+        repository = issue.repositoryName
+      )
+    )(RepositoryName(issue.userName, issue.repositoryName))
+
+  def createMetrics(milestoneId: Option[Int],
+                    priorityId: Option[Int],
+                    assignedUserName: Option[String],
+                    labels: List[Label]
+                   ): Map[String, String] = Map(
+    "None" -> "0",
+    "Label:@" -> labels.find(_.labelName.startsWith("@")).map(_.labelId).getOrElse(0).toString,
+    "Milestones" -> milestoneId.getOrElse(0).toString(),
+    "Priorities" -> priorityId.getOrElse(0).toString(),
+    "Assignees" -> (assignedUserName match {
+      case Some(s) if s.length > 0 => s
+      case _ => "-"
+    })
+  )
+
+  def createSummaryMetrics(
+                            labels: List[Label],
+                            repository: String
+                          ): Map[String, String] = Map(
+    "None" -> "0",
+    "Label:@" -> labels.find(_.labelName.startsWith("@")).map(_.labelName).getOrElse(""),
+    "Repositories" -> repository
+  )
+
+
 }

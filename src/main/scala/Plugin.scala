@@ -1,5 +1,6 @@
 import io.github.gitbucket.solidbase.model.Version
 import gitbucket.core.controller.{Context, ControllerBase}
+import gitbucket.core.model.Account
 import gitbucket.core.plugin.{Link, PluginRegistry}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
@@ -32,7 +33,19 @@ class Plugin extends gitbucket.core.plugin.Plugin {
 
   override val assetsMappings = Seq("/labelkanban" -> "/plugins/labelkanban/assets")
 
+  override val globalMenus = Seq(
+    (context: Context) => Some(Link("summarykanban", "Kanban", "summarykanban"))
+  )
+
   override val repositoryMenus = Seq(
     (repositoryInfo: RepositoryInfo, context: Context) => Some(Link("labelkanban", "Kanban", "/labalkanban", Some("inbox")))
+  )
+
+  override val profileTabs = Seq(
+    (account: Account, context: Context) => Some(Link("summarykanban", "Kanban", s"summarykanban/${account.userName}/_profile"))
+  )
+
+  override val dashboardTabs = Seq(
+    (context: Context) => Some(Link("summarykanban", "Kanban", s"summarykanban"))
   )
 }

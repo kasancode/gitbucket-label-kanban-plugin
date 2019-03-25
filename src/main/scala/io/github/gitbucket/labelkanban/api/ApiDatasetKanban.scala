@@ -10,7 +10,7 @@ case class ApiDataSetKanban(
                              issues: List[ApiIssueKanban],
                              lanes: mutable.LinkedHashMap[String,List[ApiLaneKanban]],
                              dummyLanes: Map[String, ApiLaneKanban]
-                           )(repositoryName: RepositoryName)
+                           )
   extends FieldSerializable {
 
 }
