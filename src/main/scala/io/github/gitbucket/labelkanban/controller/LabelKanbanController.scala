@@ -13,7 +13,6 @@ import org.scalatra.{Created, UnprocessableEntity}
 import java.util.Date
 
 import gitbucket.core.model.{Label, Milestone, Priority}
-import labelkanban.gitbucket.html.summarykanban
 
 import scala.collection.mutable
 
@@ -70,14 +69,16 @@ trait LabelKanbanControllerBase extends ControllerBase {
 
   get("/summarykanban")(
     usersOnly {
-      redirect(s"/summarykanban/${context.loginAccount.map(_.userName).getOrElse("")}/_profile")
+      redirect(s"/summarykanban/${context.loginAccount.map(_.userName).getOrElse("")}/normal")
     }
   )
 
-  get("/summarykanban/:owner/_profile")(
+  get("/summarykanban/:owner/:mode") (
     usersOnly {
+      val account = getAccountByUserName(params("owner"))
       val repos = getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
-      html.summarykanban(repos, repos)
+
+      html.summarykanban(repos, account.get, params("mode") == "profile")
     }
   )
 
@@ -101,17 +102,22 @@ trait LabelKanbanControllerBase extends ControllerBase {
   )
 
   get("/api/v3/:owner/plugin/summarykanban/dataset")(usersOnly {
+    val user = params("owner")
+    val groups = user :: getGroupsByUserName(user)
     val repositories = getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
+      .filter(r =>
+          groups.contains(r.owner) ||
+          getCollaborators(r.owner,r.repository.repositoryName).exists(c => c._1.collaboratorName == user))
 
     JsonFormat(
       ApiDataSetKanban(
         repositories.flatMap(repository =>
           getOpenIssues(repository.owner, repository.name)
             .map(issue =>
-
               ApiIssueKanban.applySummary(
                 issue,
-                getIssueLabels(repository.owner, repository.name, issue.issueId)
+                getIssueLabels(repository.owner, repository.name, issue.issueId),
+                getPriorities(repository.owner,repository.name)
               )
             )
         )
@@ -181,9 +187,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
       case _ => None
     }
 
-
     updatePriorityId(repository.owner, repository.name, issueId, priorityId, true)
-
     getApiIssue(issueId, repository)
   })
 
@@ -237,7 +241,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
     )
   }
 
-  def createDummyLane(key: String, id: String = "0", repository: RepositoryInfo): ApiLaneKanban = {
+  def createDummyLane(key: String, id: String, repository: RepositoryInfo): ApiLaneKanban = {
     ApiLaneKanban(
       id = id,
       name = "",
@@ -256,8 +260,9 @@ trait LabelKanbanControllerBase extends ControllerBase {
 
   def createSummaryDummyLanes(repository: RepositoryInfo): Map[String, ApiLaneKanban] = {
     Map(
-      "None" -> createDummyLane("", "0", repository),
+      "None" -> createDummyLane("", "", repository),
       "Label:@" -> createDummyLane("", "", repository),
+      "Priorities" -> createDummyLane("", "", repository),
       "Repositories" -> createDummyLane("", "", repository)
     )
   }
@@ -268,7 +273,6 @@ trait LabelKanbanControllerBase extends ControllerBase {
     mutable.LinkedHashMap(
       "None" ->
         List[ApiLaneKanban](),
-
       "Label:" + prefix ->
         getLabels(repository.owner, repository.name)
           .filter(label =>
@@ -307,7 +311,6 @@ trait LabelKanbanControllerBase extends ControllerBase {
     mutable.LinkedHashMap(
       "None" ->
         List[ApiLaneKanban](),
-
       "Label:" + prefix ->
         repositories.flatMap(repository =>
           getLabels(repository.owner, repository.name)
@@ -328,6 +331,24 @@ trait LabelKanbanControllerBase extends ControllerBase {
           .foldLeft(Nil: List[ApiLaneKanban]) {
             (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc }
           .reverse,
+      "Priorities" ->
+        repositories.flatMap(repository =>
+        getPriorities(repository.owner, repository.name)
+          .reverse
+          .map(priority =>
+            ApiLaneKanban(
+              id = priority.priorityName,
+              name = priority.priorityName,
+              color = priority.color,
+              iconImage = "",
+              icon = "",
+              htmlUrl = "",
+              switchUrl = ""
+            )(RepositoryName(repository))
+          ))
+          .foldLeft(Nil: List[ApiLaneKanban]) {
+            (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc }
+          .reverse,
       "Repositories" ->
         repositories.map(repository =>
           ApiLaneKanban(
@@ -336,7 +357,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
             color = "838383",
             iconImage = "",
             icon = "",
-            htmlUrl = "",
+            htmlUrl = ApiPath(s"/${RepositoryName(repository).fullName}").path,
             switchUrl = "")(RepositoryName(repository))
         ))
   }

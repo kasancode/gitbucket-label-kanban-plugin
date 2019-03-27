@@ -1,149 +1,16 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo
 )(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@import java.util.{Date,Calendar}
-@import gitbucket.core.model.{Issue,IssueComment}
-@import scala.collection.mutable.ListBuffer
 @import gitbucket.core.view.helpers
 
 @gitbucket.core.html.main("Kanban", Some(repository)) {
 @gitbucket.core.html.menu("labelkanban", repository) {
-<script>
-    var cssPath = "@context.path/plugin-assets/labelkanban/plugin-labelkanban.css";
+@kanbancore(true)
 
-    $("<link />")
-        .attr("rel", "stylesheet")
-        .attr("type", "text/css")
-        .attr("href", cssPath)
-        .appendTo("head");
-</script>
-<div id="kanban-app">
-    <div v-cloak>
-        <div v-if="message!=''" class="alert alert-danger">
-            <strong>Error : </strong>
-            <span>{{message}}</span>
-            <span class="close" aria-label="close" v-on:click="message=''">&times;</span>
-        </div>
-        <div class="row">
-            <div class="col-sm-4">
-                <div>
-                    <div class="form-inline">
-                        <label for="col-key" class="col-sm-2">Col.</label>
-                        <div class="col-sm-10">
-                            <select v-model="colKey" class="form-control input-sm" id="col-key" v-on:change="saveCookie()">
-                                <option v-for="key in getLaneKeys()" v-bind:value="key">{{key}}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-inline">
-                        <label for="row-key" class="col-sm-2">Row</label>
-                        <div class="col-sm-10">
-                            <select v-model="rowKey" class="form-control input-sm" id="row-key" v-on:change="saveCookie()">
-                                <option v-for="key in getLaneKeys()" v-bind:value="key">{{key}}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="text-right col-sm-8 hidden-xs">
-                <form class="form-inline" autocomplete="off">
-                    <span v-show="showNewLabelEditor">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-btn ">
-                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
-                                    aria-expanded="false">
-                                    {{prefix}}
-                                    <span class="caret"></span>
-                                </button>
-                                <ul class="dropdown-menu" role="menu">
-                                    <li v-for="menuItem in prefixes"><a v-on:click="prefix=menuItem">{{menuItem}}</a></li>
-                                </ul>
-                            </span>
-                            <input type="text" id="kanban-new-label-name" class="form-control" v-model.lazy="newLabelName"
-                                placeholder="New label name" />
-                        </div>
-                        <div id="kanban-new-label-color-holder" class="input-group color bscp input-group-sm"
-                            data-color="#888888" data-color-format="hex">
-                            <input type="text" class="form-control input-sm" id="kanban-new-label-color" v-model="newLabelColor">
-                            <span class="input-group-addon">
-                                <i v-bind:style="{'background-color':newLabelColor}"></i>
-                            </span>
-                        </div>
-                        <div class="input-group input-group-sm">
-                            <input type="button" id="kanban-label-submit" class="btn btn-sm btn-success" value="Add"
-                                v-on:click="addNewLabel()" />
-                        </div>
-                        <div class="input-group  input-group-sm">
-                            <input type="button" id="kanban-label-submit" class="btn btn-sm btn-default" value="Cancel"
-                                v-on:click="toggleLabelEditor()" />
-                        </div>
-                    </span>
-                    <span v-show="!showNewLabelEditor">
-                        <div class="input-group">
-                            <input id="kanban-label-toggle" type="button" class="btn btn-sm btn-success" v-on:click="toggleLabelEditor()"
-                                value="Add lane" />
-                        </div>
-                    </span>
-                </form>
-            </div>
-        </div>
-        <div v-bind:class="{compact:isCompact()}">
-            <div class="kanban-container col-md-12">
-                <div class="row kanban-row">
-                    <div class="kanban-column kanban-row-header kanban-header">
-                        <div class="kanban-column-body">
-                        </div>
-                    </div>
-                    <div class="kanban-column kanban-header" v-for="lane in getLanes(colKey, true)" v-bind:style="getLaneHeaderStyle(lane)">
-                        <div>
-                            <a v-bind:href="getLaneUrl(lane)" v-bind:disabled="!lane">{{lane ? lane.name || "None" : "None"}}</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="row kanban-row" v-for="rowLane in getLanes(rowKey, false)">
-                    <div class="kanban-column kanban-header kanban-row-header" v-bind:style="getLaneHeaderStyle(rowLane)">
-                        <div>
-                            <a v-bind:href="getLaneUrl(rowLane)" v-bind:disabled="!rowLane">
-                                {{rowLane ? rowLane.name || "None" : "None"}}
-                            </a>
-                        </div>
-                    </div>
-                    <div class="kanban-column" v-for="colLane in getLanes(colKey, true)" v-on:dragover="dragover(rowLane, colLane)"
-                        v-on:dragenter="dragenter(rowLane, colLane)" dropzone="move" v-bind:style="getLaneStyle(rowLane, colLane)">
-                        <div class="kanban-column-body">
-                            <div class="kanban-issue panel panel-default" v-for="issue in getIssues(getIssues(issues, rowKey, rowLane), colKey, colLane)"
-                                draggable="true" v-on:dragstart="dragstart(issue,rowLane, colLane, $event)"
-                                v-on:dragend="dragend">
-                                <div class="kanban-issue-header panel-heading">
-                                    <a v-bind:href="issue ? issue.htmlUrl : ''">{{issue.title}} <span class="text-muted">#{{issue.issueId}}</span></a>
-                                    <span class="kanban-expand-button pull-right text-muted" v-on:click="showComments(issue)">
-                                        <span v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
-                                    </span>
-                                </div>
-                                <transition-group name="kanban-expand">
-                                    <div v-if="issue.show" v-bind:key="issue.issueId" class="panel-body issue-body kanban-expand-item">
-                                        <div class="kanban-comment">{{issue.content}}</div>
-                                        <div class="kanban-comment" v-if="issue.comments" v-for="comment in issue.comments">
-                                            {{comment.body}}
-                                        </div>
-                                    </div>
-                                </transition-group>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 <script>
     var apiBasePath = "@context.path/api/v3/repos/@helpers.urlEncode(repository.owner)/@helpers.urlEncode(repository.name)/";
     var basePath = "@context.path/api/v3/repos/@helpers.urlEncode(repository.owner)/@helpers.urlEncode(repository.name)/plugin/labelkanban/";
     var prefixes = ["@@"];
 </script>
-<script src="@context.path/plugin-assets/labelkanban/vue.min.js"></script>
-<script src="@context.path/plugin-assets/labelkanban/plugin-labelkanban.js"></script>
 
 }
 }

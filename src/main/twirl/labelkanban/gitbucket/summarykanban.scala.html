@@ -1,111 +1,22 @@
-@(visibleRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
-recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
-@import context._
+@(
+recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
+account: gitbucket.core.model.Account,
+profileMode: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@import java.util.{Date,Calendar}
-@import gitbucket.core.model.{Issue,IssueComment}
-@import scala.collection.mutable.ListBuffer
-@import gitbucket.core.view.helpers
+
 @gitbucket.core.html.main("Repositories"){
+@gitbucket.core.dashboard.html.sidebar(recentRepositories){
+@if(profileMode){
+@profileTab(account,"summarykanban")
+}else{
+@gitbucket.core.dashboard.html.tab("summarykanban")
+}
+@kanbancore(false)
 
 <script>
-    var cssPath = "@context.path/plugin-assets/labelkanban/plugin-labelkanban.css";
-
-    $("<link />")
-        .attr("rel", "stylesheet")
-        .attr("type", "text/css")
-        .attr("href", cssPath)
-        .appendTo("head");
-</script>
-<div class="container content-wrapper main-center">
-    @gitbucket.core.dashboard.html.tab("Kanban")
-
-    <div id="kanban-app">
-        <div v-cloak>
-            <div v-if="message!=''" class="alert alert-danger">
-                <strong>Error : </strong>
-                <span>{{message}}</span>
-                <span class="close" aria-label="close" v-on:click="message=''">&times;</span>
-            </div>
-            <div class="row">
-                <div class="col-sm-4">
-                    <div>
-                        <div class="form-inline">
-                            <label for="col-key" class="col-sm-2">Col.</label>
-                            <div class="col-sm-10">
-                                <select v-model="colKey" class="form-control input-sm" id="col-key" v-on:change="saveCookie()">
-                                    <option v-for="key in getLaneKeys()" v-bind:value="key">{{key}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-inline">
-                            <label for="row-key" class="col-sm-2">Row</label>
-                            <div class="col-sm-10">
-                                <select v-model="rowKey" class="form-control input-sm" id="row-key" v-on:change="saveCookie()">
-                                    <option v-for="key in getLaneKeys()" v-bind:value="key">{{key}}</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="text-right col-sm-8 hidden-xs">
-
-                </div>
-            </div>
-            <div v-bind:class="{compact:isCompact()}">
-                <div class="kanban-container col-md-12">
-                    <div class="row kanban-row">
-                        <div class="kanban-column kanban-row-header kanban-header">
-                            <div class="kanban-column-body">
-                            </div>
-                        </div>
-                        <div class="kanban-column kanban-header" v-for="lane in getLanes(colKey, true)" v-bind:style="getLaneHeaderStyle(lane)">
-                            <div>
-                                <a v-bind:href="getLaneUrl(lane)" v-bind:disabled="!lane">{{lane ? lane.name || "None" : "None"}}</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row kanban-row" v-for="rowLane in getLanes(rowKey, false)">
-                        <div class="kanban-column kanban-header kanban-row-header" v-bind:style="getLaneHeaderStyle(rowLane)">
-                            <div>
-                                <a v-bind:href="getLaneUrl(rowLane)" v-bind:disabled="!rowLane">
-                                    {{rowLane ? rowLane.name || "None" : "None"}}
-                                </a>
-                            </div>
-                        </div>
-                        <div class="kanban-column" v-for="colLane in getLanes(colKey, true)" v-bind:style="getLaneStyle(rowLane, colLane)">
-                            <div class="kanban-column-body">
-                                <div class="kanban-issue panel panel-default" v-for="issue in getIssues(getIssues(issues, rowKey, rowLane), colKey, colLane)">
-                                    <div class="kanban-issue-header panel-heading">
-                                        <a v-bind:href="issue ? issue.htmlUrl : ''">{{issue.title}} <span class="text-muted">#{{issue.issueId}}</span></a>
-                                        <span class="kanban-expand-button pull-right text-muted" v-on:click="showComments(issue)">
-                                            <span v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
-                                        </span>
-                                    </div>
-                                    <transition-group name="kanban-expand">
-                                        <div v-if="issue.show" v-bind:key="issue.issueId" class="panel-body issue-body kanban-expand-item">
-                                            <div class="kanban-comment">{{issue.content}}</div>
-                                            <div class="kanban-comment" v-if="issue.comments" v-for="comment in issue.comments">
-                                                {{comment.body}}
-                                            </div>
-                                        </div>
-                                    </transition-group>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<script>
-    var apiBasePath = "@context.path/api/v3/@helpers.urlEncode(context.loginAccount match{case Some(l) => l.userName;case _ => "-"})/";
-    var basePath = "@context.path/api/v3/@helpers.urlEncode(context.loginAccount match{case Some(l) => l.userName;case _ => "-"})/plugin/summarykanban/";
+    var apiBasePath = "@context.path/api/v3/@helpers.urlEncode(account.userName)/";
+    var basePath = "@context.path/api/v3/@helpers.urlEncode(account.userName)/plugin/summarykanban/";
     var prefixes = ["@@"];
 </script>
-<script src="@context.path/plugin-assets/labelkanban/vue.min.js"></script>
-<script src="@context.path/plugin-assets/labelkanban/plugin-labelkanban.js"></script>
-
 }
-
+}

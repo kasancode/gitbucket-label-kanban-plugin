@@ -3,7 +3,7 @@ package io.github.gitbucket.labelkanban.api
 import java.util.Date
 
 import gitbucket.core.api._
-import gitbucket.core.model.{Issue, Label}
+import gitbucket.core.model.{Issue, Label, Priority}
 import gitbucket.core.util.RepositoryName
 import gitbucket.core.view.helpers
 
@@ -56,7 +56,7 @@ object ApiIssueKanban {
       )
     )(repositoryName)
 
-  def applySummary(issue: Issue, labels: List[Label]): ApiIssueKanban =
+  def applySummary(issue: Issue, labels: List[Label], priorities:List[Priority]): ApiIssueKanban =
     ApiIssueKanban(
       userName = issue.userName,
       issueId = issue.issueId,
@@ -73,6 +73,7 @@ object ApiIssueKanban {
       labelNames = labels.map(_.labelName),
       metrics = createSummaryMetrics(
         labels = labels,
+        priority = priorities.find(p => p.priorityId == issue.priorityId.getOrElse(-1)),
         repository = issue.repositoryName
       )
     )(RepositoryName(issue.userName, issue.repositoryName))
@@ -84,8 +85,8 @@ object ApiIssueKanban {
                    ): Map[String, String] = Map(
     "None" -> "0",
     "Label:@" -> labels.find(_.labelName.startsWith("@")).map(_.labelId).getOrElse(0).toString,
-    "Milestones" -> milestoneId.getOrElse(0).toString(),
-    "Priorities" -> priorityId.getOrElse(0).toString(),
+    "Milestones" -> milestoneId.getOrElse(0).toString,
+    "Priorities" -> priorityId.getOrElse(0).toString,
     "Assignees" -> (assignedUserName match {
       case Some(s) if s.length > 0 => s
       case _ => "-"
@@ -94,10 +95,12 @@ object ApiIssueKanban {
 
   def createSummaryMetrics(
                             labels: List[Label],
+                            priority: Option[Priority],
                             repository: String
                           ): Map[String, String] = Map(
-    "None" -> "0",
+    "None" -> "",
     "Label:@" -> labels.find(_.labelName.startsWith("@")).map(_.labelName).getOrElse(""),
+    "Priorities" -> priority.map(_.priorityName).getOrElse(""),
     "Repositories" -> repository
   )
 
