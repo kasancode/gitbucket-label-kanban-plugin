@@ -1,17 +1,13 @@
 @(
 recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
-account: gitbucket.core.model.Account,
-profileMode: Boolean)(implicit context: gitbucket.core.controller.Context)
+account: gitbucket.core.model.Account
+)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 
 @gitbucket.core.html.main("Repositories"){
 @gitbucket.core.dashboard.html.sidebar(recentRepositories){
-@if(profileMode){
-@profileTab(account,"summarykanban")
-}else{
 @gitbucket.core.dashboard.html.tab("summarykanban")
-}
-@kanbancore(false)
+@kanbanCore(false)
 
 <script>
     var apiBasePath = "@context.path/api/v3/@helpers.urlEncode(account.userName)/";

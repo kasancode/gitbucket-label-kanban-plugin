@@ -1,0 +1,17 @@
+@(
+account: gitbucket.core.model.Account,
+groupNames: List[String],
+extraMailAddresses: List[String])(implicit context: gitbucket.core.controller.Context)
+
+@import gitbucket.core.view.helpers
+
+@gitbucket.core.account.html.main(account, groupNames, "summarykanban", extraMailAddresses){
+
+@kanbanCore(false)
+
+<script>
+    var apiBasePath = "@context.path/api/v3/@helpers.urlEncode(account.userName)/";
+    var basePath = "@context.path/api/v3/@helpers.urlEncode(account.userName)/plugin/summarykanban/";
+    var prefixes = ["@@"];
+</script>
+}

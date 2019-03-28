@@ -9,14 +9,14 @@ import gitbucket.core.api._
 import gitbucket.core.util.Implicits._
 import io.github.gitbucket.labelkanban.api._
 import io.github.gitbucket.labelkanban.service.LabelKanbanService
-import org.scalatra.{Created, UnprocessableEntity}
+import org.scalatra.{Created, NotFound, UnprocessableEntity}
 import java.util.Date
 
 import gitbucket.core.model.{Label, Milestone, Priority}
 
 import scala.collection.mutable
 
-class LabelKanbanController extends LabelKanbanControllerBase
+class LabelKanbanController extends labelKanbanControllerBase
   with LabelKanbanService
   with RepositoryService
   with AccountService
@@ -36,7 +36,7 @@ class LabelKanbanController extends LabelKanbanControllerBase
   with ReadableUsersAuthenticator
   with WritableUsersAuthenticator
 
-trait LabelKanbanControllerBase extends ControllerBase {
+trait labelKanbanControllerBase extends ControllerBase {
 
   self: LabelKanbanService
     with RepositoryService
@@ -60,27 +60,35 @@ trait LabelKanbanControllerBase extends ControllerBase {
   get("/:owner/:repository/labalkanban")(
     referrersOnly {
       repository: RepositoryInfo => {
-        html.labelkanban(
+        html.labelKanban(
           repository
         )
       }
     }
   )
 
-  get("/summarykanban")(
-    usersOnly {
-      redirect(s"/summarykanban/${context.loginAccount.map(_.userName).getOrElse("")}/normal")
-    }
-  )
+  get("/summarykanban") {
+    redirect(s"/summarykanban/${context.loginAccount.map(_.userName).getOrElse("")}")
+  }
 
-  get("/summarykanban/:owner/:mode") (
-    usersOnly {
-      val account = getAccountByUserName(params("owner"))
-      val repos = getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
+  get("/summarykanban/:owner") {
+    val account = getAccountByUserName(params("owner"))
+    val repos = getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
 
-      html.summarykanban(repos, account.get, params("mode") == "profile")
-    }
-  )
+    html.summaryKanban(repos, account.get)
+  }
+
+  get("/summarykanban/:owner/profile") {
+    val owner = params("owner")
+    getAccountByUserName(owner).map { account =>
+      val extraMailAddresses = getAccountExtraMailAddresses(owner)
+      html.profileKanban(
+        account,
+        if (account.isGroupAccount) Nil else getGroupsByUserName(owner),
+        extraMailAddresses
+      )
+    }.getOrElse(NotFound())
+  }
 
   get("/api/v3/repos/:owner/:repository/plugin/labelkanban/dataset")(referrersOnly { repository =>
     JsonFormat(
@@ -101,7 +109,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
   }
   )
 
-  get("/api/v3/:owner/plugin/summarykanban/dataset")(usersOnly {
+  get("/api/v3/:owner/plugin/summarykanban/dataset") {
     val user = params("owner")
     val groups = user :: getGroupsByUserName(user)
     val repositories = getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
@@ -123,11 +131,10 @@ trait LabelKanbanControllerBase extends ControllerBase {
         )
         ,
         createSummaryLanes(repositories),
-        createSummaryDummyLanes(repositories.head)
+        createSummaryDummyLanes()
       )
     )
   }
-  )
 
   get("/api/v3/repos/:owner/:repository/plugin/labelkanban/issues")(referrersOnly { repository =>
     JsonFormat(
@@ -255,15 +262,27 @@ trait LabelKanbanControllerBase extends ControllerBase {
         case _ =>
           ""
       }
-    )(RepositoryName(repository))
+    )
   }
 
-  def createSummaryDummyLanes(repository: RepositoryInfo): Map[String, ApiLaneKanban] = {
+  def createSummaryDummyLane(key: String, id: String): ApiLaneKanban = {
+    ApiLaneKanban(
+      id = id,
+      name = "",
+      color = "333333",
+      iconImage = "",
+      icon = "",
+      htmlUrl = "",
+      switchUrl = ""
+    )
+  }
+
+  def createSummaryDummyLanes(): Map[String, ApiLaneKanban] = {
     Map(
-      "None" -> createDummyLane("", "", repository),
-      "Label:@" -> createDummyLane("", "", repository),
-      "Priorities" -> createDummyLane("", "", repository),
-      "Repositories" -> createDummyLane("", "", repository)
+      "None" -> createSummaryDummyLane("", ""),
+      "Label:@" -> createSummaryDummyLane("", ""),
+      "Priorities" -> createSummaryDummyLane("", ""),
+      "Repositories" -> createSummaryDummyLane("", "")
     )
   }
 
@@ -326,7 +345,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
                 iconImage = "",
                 icon = "",
                 htmlUrl = "",
-                switchUrl = "")(RepositoryName(repository))
+                switchUrl = "")
             ))
           .foldLeft(Nil: List[ApiLaneKanban]) {
             (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc }
@@ -344,7 +363,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
               icon = "",
               htmlUrl = "",
               switchUrl = ""
-            )(RepositoryName(repository))
+            )
           ))
           .foldLeft(Nil: List[ApiLaneKanban]) {
             (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc }
@@ -358,7 +377,7 @@ trait LabelKanbanControllerBase extends ControllerBase {
             iconImage = "",
             icon = "",
             htmlUrl = ApiPath(s"/${RepositoryName(repository).fullName}").path,
-            switchUrl = "")(RepositoryName(repository))
+            switchUrl = "")
         ))
   }
 
