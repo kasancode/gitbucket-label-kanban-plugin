@@ -60,7 +60,7 @@ trait labelKanbanControllerBase extends ControllerBase {
   get("/:owner/:repository/labalkanban")(
     referrersOnly {
       repository: RepositoryInfo => {
-        html.labelKanban(
+        html.repository(
           repository
         )
       }
@@ -75,14 +75,14 @@ trait labelKanbanControllerBase extends ControllerBase {
     val account = getAccountByUserName(params("owner"))
     val repos = getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
 
-    html.summaryKanban(repos, account.get)
+    html.summary(repos, account.get)
   }
 
   get("/summarykanban/:owner/profile") {
     val owner = params("owner")
     getAccountByUserName(owner).map { account =>
       val extraMailAddresses = getAccountExtraMailAddresses(owner)
-      html.profileKanban(
+      html.profile(
         account,
         if (account.isGroupAccount) Nil else getGroupsByUserName(owner),
         extraMailAddresses

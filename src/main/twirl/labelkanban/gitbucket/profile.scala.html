@@ -7,7 +7,7 @@ extraMailAddresses: List[String])(implicit context: gitbucket.core.controller.Co
 
 @gitbucket.core.account.html.main(account, groupNames, "summarykanban", extraMailAddresses){
 
-@kanbanCore(false)
+@core(false)
 
 <script>
     var apiBasePath = "@context.path/api/v3/@helpers.urlEncode(account.userName)/";

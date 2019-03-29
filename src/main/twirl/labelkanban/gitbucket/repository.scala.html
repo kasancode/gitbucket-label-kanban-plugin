@@ -4,7 +4,7 @@
 
 @gitbucket.core.html.main("Kanban", Some(repository)) {
 @gitbucket.core.html.menu("labelkanban", repository) {
-@kanbanCore(true)
+@core(true)
 
 <script>
     var apiBasePath = "@context.path/api/v3/repos/@helpers.urlEncode(repository.owner)/@helpers.urlEncode(repository.name)/";
