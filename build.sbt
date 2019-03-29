@@ -1,7 +1,7 @@
 
 name := "gitbucket-label-kanban-plugin"
 organization := "io.github.gitbucket"
-version := "2.1.0"
+version := "3.0.0"
 scalaVersion := "2.12.8"
 gitbucketVersion := "4.29.0"
 
