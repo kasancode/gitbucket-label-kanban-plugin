@@ -76,6 +76,7 @@ object ApiIssueKanban {
         labels = labels,
         prefix,
         priority = priorities.find(p => p.priorityId == issue.priorityId.getOrElse(-1)),
+        issue.assignedUserName,
         repository = issue.repositoryName
       )
     )(RepositoryName(issue.userName, issue.repositoryName))
@@ -100,11 +101,13 @@ object ApiIssueKanban {
                             labels: List[Label],
                             prefix: String,
                             priority: Option[Priority],
+                            assignedUserName: Option[String],
                             repository: String
                           ): Map[String, String] = Map(
     "None" -> "",
     "Label:" + prefix -> labels.find(_.labelName.startsWith(prefix)).map(_.labelName).getOrElse(""),
     "Priorities" -> priority.map(_.priorityName).getOrElse(""),
+    "Assignees" -> assignedUserName.getOrElse(""),
     "Repositories" -> repository
   )
 }

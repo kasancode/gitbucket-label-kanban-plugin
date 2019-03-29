@@ -289,6 +289,7 @@ trait labelKanbanControllerBase extends ControllerBase {
       "None" -> createSummaryDummyLane("", ""),
       "Label:" + prefix -> createSummaryDummyLane("", ""),
       "Priorities" -> createSummaryDummyLane("", ""),
+      "Assignees" -> createSummaryDummyLane("", ""),
       "Repositories" -> createSummaryDummyLane("", "")
     )
   }
@@ -373,6 +374,15 @@ trait labelKanbanControllerBase extends ControllerBase {
             (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc
           }
           .reverse,
+      "Assignees" ->
+        repositories.flatMap(repository =>
+          getAssignableUserNames(repository.owner, repository.name)
+          .map(assignee =>
+            ApiLaneKanban(assignee, RepositoryName(repository))
+          ))
+          .foldLeft(Nil: List[ApiLaneKanban]) {
+            (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc
+          },
       "Repositories" ->
         repositories.map(repository =>
           ApiLaneKanban(
