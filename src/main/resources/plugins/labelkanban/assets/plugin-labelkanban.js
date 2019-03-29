@@ -280,7 +280,7 @@ var kanbanApp = new Vue({
 
                     this.$forceUpdate();
                 }.bind(this))
-                .fail(this.ajaxFial);
+                .fail(this.ajaxFail);
         }
         ,
         loadLabels: function(){
@@ -292,7 +292,7 @@ var kanbanApp = new Vue({
                 this.setupLabels(data);
                 this.$forceUpdate();
             }.bind(this))
-            .fail(this.ajaxFial);
+            .fail(this.ajaxFail);
 
         }
         ,
@@ -314,7 +314,7 @@ var kanbanApp = new Vue({
                 $.ajax({
                     url: targetLane.switchUrl + issue.issueId
                 })
-                    .fail(this.ajaxFial);
+                    .fail(this.ajaxFail);
             }
 
             issue.metrics[key] = targetLane.id;
@@ -332,13 +332,14 @@ var kanbanApp = new Vue({
             })
                 .done(function (data) {
                     issue.comments = data;
-                })
-                .fail(this.ajaxFial);
+                    this.$forceUpdate();
+                }.bind(this))
+                .fail(this.ajaxFail);
         }
         ,
         /**
          */
-        ajaxFial: function (jqXHR, textStatus, errorThrown) {
+        ajaxFail: function (jqXHR, textStatus, errorThrown) {
             this.message = (jqXHR.responseJSON && jqXHR.responseJSON.message) ?
                 jqXHR.responseJSON.message :
                 textStatus;
@@ -365,7 +366,7 @@ var kanbanApp = new Vue({
                     this.loadDataSet();
                     this.toggleLabelEditor();
                 }.bind(this))
-                .fail(this.ajaxFial);
+                .fail(this.ajaxFail);
         }
         ,
         toggleLabelEditor: function () {
