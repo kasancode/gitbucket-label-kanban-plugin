@@ -33,7 +33,7 @@ case class ApiIssueKanban(
 
 
 object ApiIssueKanban {
-  def apply(issue: Issue, labels: List[Label], repositoryName: RepositoryName): ApiIssueKanban =
+  def apply(issue: Issue, labels: List[Label], prefix: String, repositoryName: RepositoryName): ApiIssueKanban =
     ApiIssueKanban(
       userName = issue.userName,
       issueId = issue.issueId,
@@ -52,11 +52,12 @@ object ApiIssueKanban {
         milestoneId = issue.milestoneId,
         priorityId = issue.priorityId,
         assignedUserName = issue.assignedUserName,
-        labels = labels
+        labels = labels,
+        prefix
       )
     )(repositoryName)
 
-  def applySummary(issue: Issue, labels: List[Label], priorities:List[Priority]): ApiIssueKanban =
+  def applySummary(issue: Issue, labels: List[Label], prefix: String, priorities: List[Priority]): ApiIssueKanban =
     ApiIssueKanban(
       userName = issue.userName,
       issueId = issue.issueId,
@@ -73,6 +74,7 @@ object ApiIssueKanban {
       labelNames = labels.map(_.labelName),
       metrics = createSummaryMetrics(
         labels = labels,
+        prefix,
         priority = priorities.find(p => p.priorityId == issue.priorityId.getOrElse(-1)),
         repository = issue.repositoryName
       )
@@ -81,10 +83,11 @@ object ApiIssueKanban {
   def createMetrics(milestoneId: Option[Int],
                     priorityId: Option[Int],
                     assignedUserName: Option[String],
-                    labels: List[Label]
+                    labels: List[Label],
+                    prefix: String
                    ): Map[String, String] = Map(
     "None" -> "0",
-    "Label:@" -> labels.find(_.labelName.startsWith("@")).map(_.labelId).getOrElse(0).toString,
+    "Label:" + prefix -> labels.find(_.labelName.startsWith(prefix)).map(_.labelId).getOrElse(0).toString,
     "Milestones" -> milestoneId.getOrElse(0).toString,
     "Priorities" -> priorityId.getOrElse(0).toString,
     "Assignees" -> (assignedUserName match {
@@ -95,14 +98,13 @@ object ApiIssueKanban {
 
   def createSummaryMetrics(
                             labels: List[Label],
+                            prefix: String,
                             priority: Option[Priority],
                             repository: String
                           ): Map[String, String] = Map(
     "None" -> "",
-    "Label:@" -> labels.find(_.labelName.startsWith("@")).map(_.labelName).getOrElse(""),
+    "Label:" + prefix -> labels.find(_.labelName.startsWith(prefix)).map(_.labelName).getOrElse(""),
     "Priorities" -> priority.map(_.priorityName).getOrElse(""),
     "Repositories" -> repository
   )
-
-
 }

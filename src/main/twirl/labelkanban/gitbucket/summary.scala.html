@@ -1,4 +1,5 @@
 @(
+prefix:String,
 recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
 account: gitbucket.core.model.Account
 )(implicit context: gitbucket.core.controller.Context)
@@ -7,12 +8,15 @@ account: gitbucket.core.model.Account
 @gitbucket.core.html.main("Repositories"){
 @gitbucket.core.dashboard.html.sidebar(recentRepositories){
 @gitbucket.core.dashboard.html.tab("summarykanban")
-@core(false)
+
+<div class="content body clearfix">
+    @core(false)
+</div>
 
 <script>
     var apiBasePath = "@context.path/api/v3/@helpers.urlEncode(account.userName)/";
     var basePath = "@context.path/api/v3/@helpers.urlEncode(account.userName)/plugin/summarykanban/";
-    var prefixes = ["@@"];
+    var prefixes = ["@prefix"];
 </script>
 }
 }

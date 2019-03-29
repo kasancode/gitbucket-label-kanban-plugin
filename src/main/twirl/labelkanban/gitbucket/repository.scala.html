@@ -1,4 +1,6 @@
-@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo
+@(
+prefix:String,
+repository: gitbucket.core.service.RepositoryService.RepositoryInfo
 )(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 
@@ -9,7 +11,7 @@
 <script>
     var apiBasePath = "@context.path/api/v3/repos/@helpers.urlEncode(repository.owner)/@helpers.urlEncode(repository.name)/";
     var basePath = "@context.path/api/v3/repos/@helpers.urlEncode(repository.owner)/@helpers.urlEncode(repository.name)/plugin/labelkanban/";
-    var prefixes = ["@@"];
+    var prefixes = ["@prefix"];
 </script>
 
 }
