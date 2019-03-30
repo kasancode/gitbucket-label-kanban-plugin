@@ -34,7 +34,7 @@ class Plugin extends gitbucket.core.plugin.Plugin {
   override val assetsMappings = Seq("/labelkanban" -> "/plugins/labelkanban/assets")
 
   override val globalMenus = Seq(
-    (context: Context) => if (context.loginAccount.isDefined) Some(Link("summarykanban", "Kanban", "summarykanban")) else None
+    (context: Context) => if (context.loginAccount.isDefined) Some(Link("summarykanban", "Summary board", "summarykanban")) else None
   )
 
   override val repositoryMenus = Seq(
@@ -42,10 +42,10 @@ class Plugin extends gitbucket.core.plugin.Plugin {
   )
 
   override val profileTabs = Seq(
-    (account: Account, context: Context) => Some(Link("summarykanban", "Kanban", s"summarykanban/${account.userName}/profile"))
+    (account: Account, context: Context) => Some(Link("summarykanban", "Summary board", s"summarykanban/${account.userName}/profile"))
   )
 
   override val dashboardTabs = Seq(
-    (context: Context) => Some(Link("summarykanban", "Kanban", s"summarykanban"))
+    (context: Context) => Some(Link("summarykanban", "Summary board", s"summarykanban"))
   )
 }
