@@ -2,7 +2,7 @@
 
 //var apiBasepath;
 //var basePath;
-//var prefixes;
+//var prefix;
 
 const compactStyleIssuesCount = 10;
 const cookieMaxAge = 30; //day
@@ -92,9 +92,6 @@ var kanbanApp = new Vue({
         ,
         /**@type {string} */
         prefix: ""
-        ,
-        /**@type {string[]} */
-        prefixes: []
         ,
         /**@returns {Object} */
         getLaneKeys: function () {
@@ -379,8 +376,7 @@ var kanbanApp = new Vue({
 });
 
 $(function () {
-    kanbanApp.prefixes = prefixes;
-    kanbanApp.prefix = prefixes[0];
+    kanbanApp.prefix = prefix;
 
     $('#kanban-new-label-color-holder').colorpicker({ format: "hex" })
         .on('changeColor', function (event) {
