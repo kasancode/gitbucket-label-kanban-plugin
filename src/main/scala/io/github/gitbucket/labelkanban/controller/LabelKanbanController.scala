@@ -262,12 +262,12 @@ trait labelKanbanControllerBase extends ControllerBase {
       color = "333333",
       iconImage = "",
       icon = "",
-      htmlUrl = ApiPath(""),
+      htmlUrl = None,
       switchUrl = key match {
         case s if s.length > 0 =>
-          ApiPath(s"/api/v3/repos/${RepositoryName(repository).fullName}/plugin/labelkanban/${key}/-/switch/issue/")
+          Some(ApiPath(s"/api/v3/repos/${RepositoryName(repository).fullName}/plugin/labelkanban/${key}/-/switch/issue/"))
         case _ =>
-          ApiPath("")
+          None
       }
     )
   }
@@ -279,8 +279,8 @@ trait labelKanbanControllerBase extends ControllerBase {
       color = "333333",
       iconImage = "",
       icon = "",
-      htmlUrl = ApiPath(""),
-      switchUrl = ApiPath("")
+      htmlUrl = None,
+      switchUrl = None
     )
   }
 
@@ -348,8 +348,8 @@ trait labelKanbanControllerBase extends ControllerBase {
                 color = label.color,
                 iconImage = "",
                 icon = "",
-                htmlUrl = ApiPath(""),
-                switchUrl = ApiPath(""))
+                htmlUrl = None,
+                switchUrl = None)
             ))
           .foldLeft(Nil: List[ApiLaneKanban]) {
             (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc
@@ -366,8 +366,8 @@ trait labelKanbanControllerBase extends ControllerBase {
                 color = priority.color,
                 iconImage = "",
                 icon = "",
-                htmlUrl = ApiPath(""),
-                switchUrl = ApiPath("")
+                htmlUrl = None,
+                switchUrl = None
               )
             ))
           .foldLeft(Nil: List[ApiLaneKanban]) {
@@ -391,8 +391,8 @@ trait labelKanbanControllerBase extends ControllerBase {
             color = "838383",
             iconImage = "",
             icon = "",
-            htmlUrl = ApiPath(s"/${RepositoryName(repository).fullName}"),
-            switchUrl = ApiPath(""))
+            htmlUrl = Some(ApiPath(s"/${RepositoryName(repository).fullName}")),
+            switchUrl = None)
         ))
   }
 
