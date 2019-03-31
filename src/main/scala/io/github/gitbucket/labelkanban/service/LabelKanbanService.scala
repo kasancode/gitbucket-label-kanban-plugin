@@ -1,17 +1,7 @@
 package io.github.gitbucket.labelkanban.service
 
-import java.util.{Date,Calendar}
 import gitbucket.core.model.{
-  Issue,
-  PullRequest,
-  IssueComment,
-  IssueLabel,
-  Label,
-  Account,
-  Repository,
-  CommitState,
-  Role,
-  Milestone
+  Issue
 }
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._

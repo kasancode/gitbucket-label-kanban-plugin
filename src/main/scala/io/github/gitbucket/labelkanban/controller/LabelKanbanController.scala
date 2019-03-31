@@ -13,6 +13,7 @@ import org.scalatra.{Created, NotFound, UnprocessableEntity}
 import java.util.Date
 
 import gitbucket.core.model.{Label, Milestone, Priority}
+import gitbucket.core.service.IssuesService.IssueSearchCondition
 
 import scala.collection.mutable
 
@@ -119,22 +120,25 @@ trait labelKanbanControllerBase extends ControllerBase {
     val groups = user :: getGroupsByUserName(user)
     val repositories = getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
       .filter(r =>
-        groups.contains(r.owner) ||
-          getCollaborators(r.owner, r.repository.repositoryName).exists(c => c._1.collaboratorName == user))
+        (groups.contains(r.owner) ||
+          getCollaborators(r.owner, r.repository.repositoryName).exists(c => c._1.collaboratorName == user)) &&
+          countIssue(IssueSearchCondition(), false, (r.owner, r.repository.repositoryName)) > 0
+      )
 
     JsonFormat(
       ApiDataSetKanban(
-        repositories.flatMap(repository =>
-          getOpenIssues(repository.owner, repository.name)
-            .map(issue =>
-              ApiIssueKanban.applySummary(
-                issue,
-                getIssueLabels(repository.owner, repository.name, issue.issueId),
-                prefix,
-                getPriorities(repository.owner, repository.name)
+        repositories
+          .flatMap(repository =>
+            getOpenIssues(repository.owner, repository.name)
+              .map(issue =>
+                ApiIssueKanban.applySummary(
+                  issue,
+                  getIssueLabels(repository.owner, repository.name, issue.issueId),
+                  prefix,
+                  getPriorities(repository.owner, repository.name)
+                )
               )
-            )
-        )
+          )
         ,
         createSummaryLanes(repositories),
         createSummaryDummyLanes()
