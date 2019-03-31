@@ -11,8 +11,8 @@ case class ApiLaneKanban(
                           color : String,
                           iconImage : String,
                           icon : String,
-                          htmlUrl : String,
-                          switchUrl : String
+                          htmlUrl : ApiPath,
+                          switchUrl : ApiPath
                          ) extends FieldSerializable
 {
 }
@@ -25,8 +25,8 @@ object ApiLaneKanban {
       color = label.color,
       iconImage = "",
       icon = "",
-      htmlUrl = ApiPath(s"/${repositoryName.fullName}/issues?labels=${helpers.urlEncode(label.labelName)}&state=open").path,
-      switchUrl = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/label/${label.labelId}/switch/issue/").path
+      htmlUrl = ApiPath(s"/${repositoryName.fullName}/issues?labels=${helpers.urlEncode(label.labelName)}&state=open"),
+      switchUrl = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/label/${label.labelId}/switch/issue/")
     )
 
   def apply(milestone: Milestone, repositoryName: RepositoryName): ApiLaneKanban =
@@ -36,8 +36,8 @@ object ApiLaneKanban {
     color = "838383",
     iconImage = "",
     icon = "",
-    htmlUrl = ApiPath(s"/${repositoryName.fullName}/issues?milestone=${helpers.urlEncode(milestone.title)}&state=open").path,
-    switchUrl = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/milestone/${milestone.milestoneId}/switch/issue/").path
+    htmlUrl = ApiPath(s"/${repositoryName.fullName}/issues?milestone=${helpers.urlEncode(milestone.title)}&state=open"),
+    switchUrl = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/milestone/${milestone.milestoneId}/switch/issue/")
   )
 
   def apply(userName: String, repositoryName: RepositoryName):ApiLaneKanban =
@@ -47,8 +47,8 @@ object ApiLaneKanban {
       color = "838383",
       iconImage = "",
       icon = "",
-      htmlUrl = ApiPath(s"/${repositoryName.fullName}/issues?assigned=${helpers.urlEncode(userName)}&state=open").path,
-      switchUrl = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/assignee/${userName}/switch/issue/").path
+      htmlUrl = ApiPath(s"/${repositoryName.fullName}/issues?assigned=${helpers.urlEncode(userName)}&state=open"),
+      switchUrl = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/assignee/${userName}/switch/issue/")
     )
 
   def apply(priority: Priority, repositoryName: RepositoryName):ApiLaneKanban =
@@ -58,8 +58,8 @@ object ApiLaneKanban {
       color = priority.color,
       iconImage = "",
       icon = "",
-      htmlUrl = ApiPath(s"/${repositoryName.fullName}/issues?priority=${helpers.urlEncode(priority.priorityName)}&state=open").path,
-      switchUrl =  ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/priority/${priority.priorityId}/switch/issue/").path
+      htmlUrl = ApiPath(s"/${repositoryName.fullName}/issues?priority=${helpers.urlEncode(priority.priorityName)}&state=open"),
+      switchUrl =  ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/priority/${priority.priorityId}/switch/issue/")
     )
 }
 
