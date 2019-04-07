@@ -12,7 +12,8 @@ case class ApiLaneKanban(
                           iconImage : String,
                           icon : String,
                           htmlUrl : Option[ApiPath],
-                          switchUrl : Option[ApiPath]
+                          switchUrl : Option[ApiPath],
+                          paramKey: String
                          ) extends FieldSerializable
 {
 }
@@ -26,7 +27,8 @@ object ApiLaneKanban {
       iconImage = "",
       icon = "",
       htmlUrl = Some(ApiPath(s"/${repositoryName.fullName}/issues?labels=${helpers.urlEncode(label.labelName)}&state=open")),
-      switchUrl = Some(ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/label/${label.labelId}/switch/issue/"))
+      switchUrl = Some(ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/label/${label.labelId}/switch/issue/")),
+      paramKey = "label"
     )
 
   def apply(milestone: Milestone, repositoryName: RepositoryName): ApiLaneKanban =
@@ -37,7 +39,8 @@ object ApiLaneKanban {
     iconImage = "",
     icon = "",
     htmlUrl = Some(ApiPath(s"/${repositoryName.fullName}/issues?milestone=${helpers.urlEncode(milestone.title)}&state=open")),
-    switchUrl = Some(ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/milestone/${milestone.milestoneId}/switch/issue/"))
+    switchUrl = Some(ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/milestone/${milestone.milestoneId}/switch/issue/")),
+    paramKey = "milestone"
   )
 
   def apply(userName: String, repositoryName: RepositoryName):ApiLaneKanban =
@@ -48,7 +51,8 @@ object ApiLaneKanban {
       iconImage = "",
       icon = "",
       htmlUrl = Some(ApiPath(s"/${repositoryName.fullName}/issues?assigned=${helpers.urlEncode(userName)}&state=open")),
-      switchUrl = Some(ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/assignee/${userName}/switch/issue/"))
+      switchUrl = Some(ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/assignee/${userName}/switch/issue/")),
+      paramKey = "assignee"
     )
 
   def apply(priority: Priority, repositoryName: RepositoryName):ApiLaneKanban =
@@ -59,7 +63,8 @@ object ApiLaneKanban {
       iconImage = "",
       icon = "",
       htmlUrl = Some(ApiPath(s"/${repositoryName.fullName}/issues?priority=${helpers.urlEncode(priority.priorityName)}&state=open")),
-      switchUrl = Some(ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/priority/${priority.priorityId}/switch/issue/"))
+      switchUrl = Some(ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/priority/${priority.priorityId}/switch/issue/")),
+      paramKey = "priority"
     )
 }
 

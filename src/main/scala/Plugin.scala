@@ -1,3 +1,4 @@
+import gitbucket.core.api.ApiPath
 import io.github.gitbucket.solidbase.model.Version
 import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.model.Account
@@ -6,6 +7,7 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.view.helpers
 import io.github.gitbucket.labelkanban.controller.LabelKanbanController
+import javax.servlet.ServletContext
 
 class Plugin extends gitbucket.core.plugin.Plugin {
   override val pluginId: String = "labelkanban"
@@ -33,6 +35,8 @@ class Plugin extends gitbucket.core.plugin.Plugin {
   )
 
   override val assetsMappings = Seq("/labelkanban" -> "/plugins/labelkanban/assets")
+
+  // "override val" is difficult to resolve url
 
   override val globalMenus = Seq(
     (context: Context) => if (context.loginAccount.isDefined) Some(Link("summarykanban", "Summary board", "summarykanban")) else None

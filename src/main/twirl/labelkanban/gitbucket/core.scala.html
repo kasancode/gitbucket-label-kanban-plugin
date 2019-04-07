@@ -133,6 +133,11 @@ $("<link />")
                                     </div>
                                 </transition-group>
                             </div>
+                            @if(editable){
+                            <div class="kanban-issue kanban-issue-dotted">
+                                <a v-bind:href="getNewIssueUrl(rowLane, colLane)">Add issue</a>
+                            </div>
+                            }
                         </div>
                     </div>
                 </div>

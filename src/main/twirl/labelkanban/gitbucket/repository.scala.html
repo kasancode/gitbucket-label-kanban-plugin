@@ -9,6 +9,7 @@ repository: gitbucket.core.service.RepositoryService.RepositoryInfo
 @core(true)
 
 <script>
+    var addIssuePath = "@context.path/@helpers.urlEncode(repository.owner)/@helpers.urlEncode(repository.name)/labelkanban/issues/new"
     var apiBasePath = "@context.path/api/v3/repos/@helpers.urlEncode(repository.owner)/@helpers.urlEncode(repository.name)/";
     var basePath = "@context.path/api/v3/repos/@helpers.urlEncode(repository.owner)/@helpers.urlEncode(repository.name)/plugin/labelkanban/";
     var prefix = "@prefix";

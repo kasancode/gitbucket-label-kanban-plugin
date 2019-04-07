@@ -1,10 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+@(collaborators: List[String],
+milestones: List[gitbucket.core.model.Milestone],
+priorities: List[gitbucket.core.model.Priority],
+defaultPriority: Option[gitbucket.core.model.Priority],
+labels: List[gitbucket.core.model.Label],
+isManageable: Boolean,
+content: String,
+repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+assigneeName: Option[String],
+milestoneId: Option[String],
+priorityId: Option[String],
+labelIds: Seq[String])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+
+@gitbucket.core.html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
+@gitbucket.core.html.menu("issues", repository){
+<form action="@helpers.url(repository)/issues/new" method="POST" validate="true" class="form-group" autocomplete="off">
+    <div class="row-fluid">
+        <div class="col-md-9">
+            <span id="error-title" class="error"></span>
+            <input type="text" id="issue-title" name="title" class="form-control" value="" placeholder="Title" style="margin-bottom: 6px;" autofocus/>
+            @gitbucket.core.helper.html.preview(
+            repository         = repository,
+            content            = content,
+            enableWikiLink     = false,
+            enableRefsLink     = true,
+            enableLineBreaks   = true,
+            enableTaskList     = true,
+            hasWritePermission = isManageable,
+            completionContext  = "issues",
+            style              = "height: 200px; max-height: 500px;",
+            elastic            = true
+            )
+            <div class="align-right">
+                <input type="submit" class="btn btn-success" value="Submit new issue"/>
+            </div>
+        </div>
+        <div class="col-md-3">
+            @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), priorities, defaultPriority, labels, isManageable, repository)
+        </div>
+    </div>
+</form>
+<script src="@context.path/plugin-assets/labelkanban/setup-issue.js"></script>
+<script>
+    var labelSetupPath = "@helpers.url(repository)/issues/new/label";
+
+@labelIds.map{id =>
+    LabelKanbanPlugin.setupLabel('@id');
+}
+
+@milestoneId.map{id =>
+    LabelKanbanPlugin.setupMilestone('@id');
+}.getOrElse("")
+
+@priorityId.map{id =>
+    LabelKanbanPlugin.setupPriority('@id');
+}.getOrElse("")
+
+@assigneeName.map{name =>
+    LabelKanbanPlugin.setupAssignee('@name');
+}.getOrElse("")
+</script>
+}
+}

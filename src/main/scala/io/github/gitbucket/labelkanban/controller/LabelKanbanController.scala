@@ -14,49 +14,46 @@ import java.util.Date
 
 import gitbucket.core.model.{Label, Milestone, Priority}
 import gitbucket.core.service.IssuesService.IssueSearchCondition
+import gitbucket.core.util.SyntaxSugars.defining
 
 import scala.collection.mutable
 
 class LabelKanbanController extends labelKanbanControllerBase
   with LabelKanbanService
+  with IssuesService
   with RepositoryService
   with AccountService
-  with RequestCache
-  with ProtectedBranchService
-  with IssuesService
   with LabelsService
   with MilestonesService
-  with PullRequestService
-  with CommitsService
-  with CommitStatusService
-  with PrioritiesService
-  with OwnerAuthenticator
-  with UsersAuthenticator
-  with GroupManagerAuthenticator
-  with ReferrerAuthenticator
+  with ActivityService
+  with HandleCommentService
+  with IssueCreationService
   with ReadableUsersAuthenticator
+  with ReferrerAuthenticator
   with WritableUsersAuthenticator
+  with PullRequestService
+  with WebHookIssueCommentService
+  with CommitsService
+  with PrioritiesService
 
 trait labelKanbanControllerBase extends ControllerBase {
 
   self: LabelKanbanService
+    with IssuesService
     with RepositoryService
     with AccountService
-    with RequestCache
-    with ProtectedBranchService
-    with IssuesService
     with LabelsService
     with MilestonesService
-    with PullRequestService
-    with CommitsService
-    with CommitStatusService
-    with PrioritiesService
-    with OwnerAuthenticator
-    with UsersAuthenticator
-    with GroupManagerAuthenticator
-    with ReferrerAuthenticator
+    with ActivityService
+    with HandleCommentService
+    with IssueCreationService
     with ReadableUsersAuthenticator
-    with WritableUsersAuthenticator =>
+    with ReferrerAuthenticator
+    with WritableUsersAuthenticator
+    with PullRequestService
+    with WebHookIssueCommentService
+    with CommitsService
+    with PrioritiesService =>
 
   val prefix = "@"
 
@@ -94,6 +91,33 @@ trait labelKanbanControllerBase extends ControllerBase {
       )
     }.getOrElse(NotFound())
   }
+
+  get("/:owner/:repository/labelkanban/issues/new")(readableUsersOnly { repository =>
+    if (isIssueEditable(repository)) {
+      val labelIds = multiParams("label")
+      val milestoneId = params.get("milestone")
+      val priorityId = params.get("priority")
+      val assigneeName = params.get("assignee")
+
+      defining(repository.owner, repository.name) {
+        case (owner, name) =>
+          html.newissue(
+            getAssignableUserNames(owner, name),
+            getMilestones(owner, name),
+            getPriorities(owner, name),
+            getDefaultPriority(owner, name),
+            getLabels(owner, name),
+            isIssueManageable(repository),
+            getContentTemplate(repository, "ISSUE_TEMPLATE"),
+            repository,
+            assigneeName,
+            milestoneId,
+            priorityId,
+            labelIds
+          )
+      }
+    } else Unauthorized()
+  })
 
   get("/api/v3/repos/:owner/:repository/plugin/labelkanban/dataset")(referrersOnly { repository =>
     JsonFormat(
@@ -272,7 +296,8 @@ trait labelKanbanControllerBase extends ControllerBase {
           Some(ApiPath(s"/api/v3/repos/${RepositoryName(repository).fullName}/plugin/labelkanban/${key}/-/switch/issue/"))
         case _ =>
           None
-      }
+      },
+      ""
     )
   }
 
@@ -284,7 +309,8 @@ trait labelKanbanControllerBase extends ControllerBase {
       iconImage = "",
       icon = "",
       htmlUrl = None,
-      switchUrl = None
+      switchUrl = None,
+      ""
     )
   }
 
@@ -353,7 +379,8 @@ trait labelKanbanControllerBase extends ControllerBase {
                 iconImage = "",
                 icon = "",
                 htmlUrl = None,
-                switchUrl = None)
+                switchUrl = None,
+                paramKey = "")
             ))
           .foldLeft(Nil: List[ApiLaneKanban]) {
             (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc
@@ -371,7 +398,8 @@ trait labelKanbanControllerBase extends ControllerBase {
                 iconImage = "",
                 icon = "",
                 htmlUrl = None,
-                switchUrl = None
+                switchUrl = None,
+                paramKey = ""
               )
             ))
           .foldLeft(Nil: List[ApiLaneKanban]) {
@@ -396,7 +424,8 @@ trait labelKanbanControllerBase extends ControllerBase {
             iconImage = "",
             icon = "",
             htmlUrl = Some(ApiPath(s"/${RepositoryName(repository).fullName}")),
-            switchUrl = None)
+            switchUrl = None,
+            paramKey = "")
         ))
   }
 

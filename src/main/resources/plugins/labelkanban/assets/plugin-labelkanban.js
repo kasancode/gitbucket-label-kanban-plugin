@@ -1,8 +1,9 @@
 
 
-//var apiBasepath;
-//var basePath;
-//var prefix;
+var apiBasepath;
+var basePath;
+var prefix;
+var addIssuePath;
 
 const compactStyleIssuesCount = 10;
 const cookieMaxAge = 30; //day
@@ -249,6 +250,24 @@ var kanbanApp = new Vue({
         }
         ,
         /**
+         * @param {lane} rowLane
+         * @param {lane} colLane
+         * @returns {String}
+         */
+        getNewIssueUrl: function(rowLane, colLane){
+            if(!addIssuePath) return null;
+
+            var url = addIssuePath + "?";
+            if(rowLane.paramKey)
+                url += rowLane.paramKey + "=" + rowLane.id;
+            if(rowLane.paramKey && colLane.paramKey)
+                url += "&";
+            if(colLane.paramKey)
+                url += colLane.paramKey + "=" + colLane.id;
+            return url;
+        }
+        ,
+        /**
          * @param {lane} lane
          * @returns {object}
          */
@@ -278,19 +297,6 @@ var kanbanApp = new Vue({
                     this.$forceUpdate();
                 }.bind(this))
                 .fail(this.ajaxFail);
-        }
-        ,
-        loadLabels: function(){
-            $.ajax({
-                url: basePath + 'labels',
-                dataType: 'json'
-            })
-            .done(function(data){
-                this.setupLabels(data);
-                this.$forceUpdate();
-            }.bind(this))
-            .fail(this.ajaxFail);
-
         }
         ,
         /**
