@@ -43,7 +43,7 @@ class Plugin extends gitbucket.core.plugin.Plugin {
   )
 
   override val repositoryMenus = Seq(
-    (repositoryInfo: RepositoryInfo, context: Context) => Some(Link("labelkanban", "Kanban", "/labalkanban", Some("inbox")))
+    (repositoryInfo: RepositoryInfo, context: Context) => Some(Link("labelkanban", "Kanban", "/labelkanban", Some("inbox")))
   )
 
   override val profileTabs = Seq(

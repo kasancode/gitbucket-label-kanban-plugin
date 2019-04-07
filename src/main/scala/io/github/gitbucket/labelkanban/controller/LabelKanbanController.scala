@@ -57,7 +57,7 @@ trait labelKanbanControllerBase extends ControllerBase {
 
   val prefix = "@"
 
-  get("/:owner/:repository/labalkanban")(
+  get("/:owner/:repository/labelkanban")(
     referrersOnly {
       repository: RepositoryInfo => {
         html.repository(
