@@ -12,13 +12,13 @@
     }
 </style>
 <script>
-var cssPath = "@context.path/plugin-assets/labelkanban/plugin-labelkanban.css";
+    var cssPath = "@context.path/plugin-assets/labelkanban/plugin-labelkanban.css";
 
-$("<link />")
-    .attr("rel", "stylesheet")
-    .attr("type", "text/css")
-    .attr("href", cssPath)
-    .appendTo("head");
+    $("<link />")
+        .attr("rel", "stylesheet")
+        .attr("type", "text/css")
+        .attr("href", cssPath)
+        .appendTo("head");
 </script>
 <div id="kanban-app">
     <div v-cloak>
@@ -33,7 +33,8 @@ $("<link />")
                     <div class="form-inline">
                         <label for="col-key" class="col-sm-2">Col.</label>
                         <div class="col-sm-10">
-                            <select v-model="colKey" class="form-control input-sm" id="col-key" v-on:change="saveCookie()">
+                            <select v-model="colKey" class="form-control input-sm" id="col-key"
+                                v-on:change="saveCookie()">
                                 <option v-for="key in getLaneKeys()" v-bind:value="key">{{key}}</option>
                             </select>
                         </div>
@@ -41,7 +42,8 @@ $("<link />")
                     <div class="form-inline">
                         <label for="row-key" class="col-sm-2">Row</label>
                         <div class="col-sm-10">
-                            <select v-model="rowKey" class="form-control input-sm" id="row-key" v-on:change="saveCookie()">
+                            <select v-model="rowKey" class="form-control input-sm" id="row-key"
+                                v-on:change="saveCookie()">
                                 <option v-for="key in getLaneKeys()" v-bind:value="key">{{key}}</option>
                             </select>
                         </div>
@@ -54,12 +56,13 @@ $("<link />")
                     <span v-show="showNewLabelEditor">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">{{prefix}}</span>
-                            <input type="text" id="kanban-new-label-name" class="form-control" v-model.lazy="newLabelName"
-                                placeholder="New label name" />
+                            <input type="text" id="kanban-new-label-name" class="form-control"
+                                v-model.lazy="newLabelName" placeholder="New label name" />
                         </div>
                         <div id="kanban-new-label-color-holder" class="input-group color bscp input-group-sm"
                             data-color="#888888" data-color-format="hex">
-                            <input type="text" class="form-control input-sm" id="kanban-new-label-color" v-model="newLabelColor">
+                            <input type="text" class="form-control input-sm" id="kanban-new-label-color"
+                                v-model="newLabelColor">
                             <span class="input-group-addon">
                                 <i v-bind:style="{'background-color':newLabelColor}"></i>
                             </span>
@@ -75,8 +78,8 @@ $("<link />")
                     </span>
                     <span v-show="!showNewLabelEditor">
                         <div class="input-group">
-                            <input id="kanban-label-toggle" type="button" class="btn btn-sm btn-success" v-on:click="toggleLabelEditor()"
-                                value="Add lane" />
+                            <input id="kanban-label-toggle" type="button" class="btn btn-sm btn-success"
+                                v-on:click="toggleLabelEditor()" value="Add lane" />
                         </div>
                     </span>
                 </form>
@@ -90,53 +93,57 @@ $("<link />")
                         <div class="kanban-column-body">
                         </div>
                     </div>
-                    <div class="kanban-column kanban-header" v-for="lane in getLanes(colKey, true)" v-bind:style="getLaneHeaderStyle(lane)">
+                    <div class="kanban-column kanban-header" v-for="lane in getLanes(colKey, true)"
+                        v-bind:style="getLaneHeaderStyle(lane)">
                         <div>
-                            <a v-bind:href="getLaneUrl(lane)" v-bind:disabled="!getLaneUrl(lane)">{{lane ? lane.name || "None" : "None"}}</a>
+                            <a v-bind:href="getLaneUrl(lane)"
+                                v-bind:disabled="!getLaneUrl(lane)">{{lane ? lane.name || "None" : "None"}}</a>
                         </div>
                     </div>
                 </div>
                 <div class="row kanban-row" v-for="rowLane in getLanes(rowKey, false)">
-                    <div class="kanban-column kanban-header kanban-row-header" v-bind:style="getLaneHeaderStyle(rowLane)">
+                    <div class="kanban-column kanban-header kanban-row-header"
+                        v-bind:style="getLaneHeaderStyle(rowLane)">
                         <div>
                             <a v-bind:href="getLaneUrl(rowLane)" v-bind:disabled="!getLaneUrl(rowLane)">
                                 {{rowLane ? rowLane.name || "None" : "None"}}
                             </a>
                         </div>
                     </div>
-                    <div class="kanban-column" v-for="colLane in getLanes(colKey, true)"
-                         @if(editable){
-                            v-on:dragover="dragover(rowLane, colLane)"
-                            v-on:dragenter="dragenter(rowLane, colLane)" dropzone="move"
-                         }
-                         v-bind:style="getLaneStyle(rowLane, colLane)">
+                    <div class="kanban-column" v-for="colLane in getLanes(colKey, true)" @if(editable){
+                        v-on:dragover="dragover(rowLane, colLane)" v-on:dragenter="dragenter(rowLane, colLane)"
+                        dropzone="move" } v-bind:style="getLaneStyle(rowLane, colLane)">
                         <div class="kanban-column-body">
-                            <div @if(editable){
-                                    class="kanban-issue kanban-movable panel panel-default"
-                                    draggable="true" v-on:dragstart="dragstart(issue,rowLane, colLane, $event)"
-                                    v-on:dragend="dragend"
-                                 }else{
-                                    class="kanban-issue panel panel-default"
-                                 } v-for="issue in getIssues(getIssues(issues, rowKey, rowLane), colKey, colLane)">
+                            <div @if(editable){ class="kanban-issue kanban-movable panel panel-default" draggable="true"
+                                v-on:dragstart="dragstart(issue,rowLane, colLane, $event)" v-on:dragend="dragend" }else{
+                                class="kanban-issue panel panel-default" }
+                                v-for="issue in getIssues(getIssues(issues, rowKey, rowLane), colKey, colLane)">
                                 <div class="kanban-issue-header panel-heading">
-                                    <a v-bind:href="issue ? issue.htmlUrl : ''">{{issue.title}} <span class="text-muted">#{{issue.issueId}}</span></a>
-                                    <span class="kanban-expand-button pull-right text-muted" v-on:click="showComments(issue)">
-                                        <span v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
+                                    <a v-bind:href="issue ? issue.htmlUrl : ''">{{issue.title}} <span
+                                            class="text-muted">#{{issue.issueId}}</span></a>
+                                    <span class="kanban-expand-button pull-right text-muted"
+                                        v-on:click="showComments(issue)">
+                                        <span
+                                            v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
                                     </span>
                                 </div>
                                 <transition-group name="kanban-expand">
-                                    <div v-if="issue.show" v-bind:key="issue.issueId" class="panel-body issue-body kanban-expand-item">
+                                    <div v-if="issue.show" v-bind:key="issue.issueId"
+                                        class="panel-body issue-body kanban-expand-item">
                                         <div class="kanban-comment">{{issue.content}}</div>
-                                        <div class="kanban-comment" v-if="issue.comments" v-for="comment in issue.comments">
+                                        <div class="kanban-comment" v-if="issue.comments"
+                                            v-for="comment in issue.comments">
                                             {{comment.body}}
                                         </div>
                                     </div>
                                 </transition-group>
                             </div>
                             @if(editable){
-                            <div class="kanban-issue kanban-issue-dotted">
-                                <a v-bind:href="getNewIssueUrl(rowLane, colLane)">Add issue</a>
-                            </div>
+                            <a v-bind:href="getNewIssueUrl(rowLane, colLane)">
+                                <div class="kanban-issue kanban-issue-dotted"><i class="octicon octicon-plus"></i> Add
+                                    issue
+                                </div>
+                            </a>
                             }
                         </div>
                     </div>

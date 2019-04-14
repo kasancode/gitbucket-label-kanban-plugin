@@ -132,8 +132,7 @@ trait labelKanbanControllerBase extends ControllerBase {
             )
           )
         ,
-        createLanes(repository),
-        createDummyLanes(repository)
+        createLanes(repository)
       )
     )
   }
@@ -164,8 +163,7 @@ trait labelKanbanControllerBase extends ControllerBase {
               )
           )
         ,
-        createSummaryLanes(repositories),
-        createSummaryDummyLanes()
+        createSummaryLanes(repositories)
       )
     )
   }
@@ -273,15 +271,6 @@ trait labelKanbanControllerBase extends ControllerBase {
     getApiIssue(issueId, repository)
   })
 
-  def createDummyLanes(repository: RepositoryInfo): Map[String, ApiLaneKanban] = {
-    Map(
-      "None" -> createDummyLane("", "0", repository),
-      "Label:" + prefix -> createDummyLane("label", "0", repository),
-      "Milestones" -> createDummyLane("milestone", "0", repository),
-      "Priorities" -> createDummyLane("priority", "0", repository),
-      "Assignees" -> createDummyLane("assignee", "-", repository),
-    )
-  }
 
   def createDummyLane(key: String, id: String, repository: RepositoryInfo): ApiLaneKanban = {
     ApiLaneKanban(
@@ -314,57 +303,59 @@ trait labelKanbanControllerBase extends ControllerBase {
     )
   }
 
-  def createSummaryDummyLanes(): Map[String, ApiLaneKanban] = {
-    Map(
-      "None" -> createSummaryDummyLane("", ""),
-      "Label:" + prefix -> createSummaryDummyLane("", ""),
-      "Priorities" -> createSummaryDummyLane("", ""),
-      "Assignees" -> createSummaryDummyLane("", ""),
-      "Repositories" -> createSummaryDummyLane("", "")
-    )
-  }
-
   def createLanes(repository: RepositoryInfo): mutable.LinkedHashMap[String, List[ApiLaneKanban]] = {
     mutable.LinkedHashMap(
       "None" ->
-        List[ApiLaneKanban](),
-      "Label:" + prefix ->
-        getLabels(repository.owner, repository.name)
-          .filter(label =>
-            label.labelName.startsWith(prefix))
-          .sortBy(label =>
-            label.labelId)
-          .map(label =>
-            ApiLaneKanban(label, RepositoryName(repository))
-          ),
-      "Priorities" ->
-        getPriorities(repository.owner, repository.name)
-          .reverse
-          .map(priority =>
-            ApiLaneKanban(priority, RepositoryName(repository))
-          ),
-      "Milestones" ->
-        getMilestonesWithIssueCount(repository.owner, repository.name)
-          .filter(items =>
-            items._2 > 0 || items._3 == 0 || (items._1.dueDate.isDefined && items._1.dueDate.get.after(new Date)))
-          .reverse
-          .map(items =>
-            ApiLaneKanban(items._1, RepositoryName(repository))
-          ),
-      "Assignees" ->
-        getAssignableUserNames(repository.owner, repository.name)
-          .map(assignee =>
-            ApiLaneKanban(assignee, RepositoryName(repository))
-          )
+        List[ApiLaneKanban](createDummyLane("", "0", repository))
+      ,
+      "Label:" + prefix -> (
+        createDummyLane("label", "0", repository) ::
+          getLabels(repository.owner, repository.name)
+            .filter(label =>
+              label.labelName.startsWith(prefix))
+            .sortBy(label =>
+              label.labelId)
+            .map(label =>
+              ApiLaneKanban(label, RepositoryName(repository))
+            )
+        )
+      ,
+      "Priorities" -> (
+        createDummyLane("priority", "0", repository) ::
+          getPriorities(repository.owner, repository.name)
+            .reverse
+            .map(priority =>
+              ApiLaneKanban(priority, RepositoryName(repository))
+            )
+        )
+      ,
+      "Milestones" -> (
+        createDummyLane("milestone", "0", repository) ::
+          getMilestonesWithIssueCount(repository.owner, repository.name)
+            .filter(items =>
+              items._2 > 0 || items._3 == 0 || (items._1.dueDate.isDefined && items._1.dueDate.get.after(new Date)))
+            .reverse
+            .map(items =>
+              ApiLaneKanban(items._1, RepositoryName(repository))
+            )
+        )
+      ,
+      "Assignees" -> (
+        createDummyLane("assignee", "-", repository) ::
+          getAssignableUserNames(repository.owner, repository.name)
+            .map(assignee =>
+              ApiLaneKanban(assignee, RepositoryName(repository))
+            )
+        )
     )
   }
-
 
   def createSummaryLanes(repositories: List[RepositoryInfo]): mutable.LinkedHashMap[String, List[ApiLaneKanban]] = {
     mutable.LinkedHashMap(
       "None" ->
-        List[ApiLaneKanban](),
-      "Label:" + prefix ->
+        List[ApiLaneKanban](createSummaryDummyLane("", "")),
+      "Label:" + prefix -> (
+        createSummaryDummyLane("", "") ::
         repositories.flatMap(repository =>
           getLabels(repository.owner, repository.name)
             .filter(label =>
@@ -385,8 +376,10 @@ trait labelKanbanControllerBase extends ControllerBase {
           .foldLeft(Nil: List[ApiLaneKanban]) {
             (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc
           }
-          .reverse,
-      "Priorities" ->
+          .reverse)
+      ,
+      "Priorities" -> (
+        createSummaryDummyLane("", "") ::
         repositories.flatMap(repository =>
           getPriorities(repository.owner, repository.name)
             .reverse
@@ -405,16 +398,19 @@ trait labelKanbanControllerBase extends ControllerBase {
           .foldLeft(Nil: List[ApiLaneKanban]) {
             (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc
           }
-          .reverse,
-      "Assignees" ->
+          .reverse)
+      ,
+      "Assignees" -> (
+        createSummaryDummyLane("", "")::
         repositories.flatMap(repository =>
           getAssignableUserNames(repository.owner, repository.name)
-          .map(assignee =>
-            ApiLaneKanban(assignee, RepositoryName(repository))
-          ))
+            .map(assignee =>
+              ApiLaneKanban(assignee, RepositoryName(repository))
+            ))
           .foldLeft(Nil: List[ApiLaneKanban]) {
             (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc
-          },
+          })
+      ,
       "Repositories" ->
         repositories.map(repository =>
           ApiLaneKanban(
@@ -426,7 +422,8 @@ trait labelKanbanControllerBase extends ControllerBase {
             htmlUrl = Some(ApiPath(s"/${RepositoryName(repository).fullName}")),
             switchUrl = None,
             paramKey = "")
-        ))
+        )
+    )
   }
 
   def getApiIssue(issueId: Int, repository: RepositoryInfo): String = {

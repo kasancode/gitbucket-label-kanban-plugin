@@ -8,8 +8,6 @@ var addIssuePath;
 const compactStyleIssuesCount = 10;
 const cookieMaxAge = 30; //day
 
-var dummyLanes = {}
-
 function getCookie(name) {
     var cookieName = name + '=';
     var allcookies = document.cookie;
@@ -105,20 +103,13 @@ var kanbanApp = new Vue({
          * @returns {lane[]}
          */
         getLanes: function (key, dummyFirst) {
-            if(!dummyLanes || !this.lanes)
+            if(!this.lanes || !key || !this.lanes[key])
                 return null;
 
-            if (!key)
-                return [dummyLanes["None"]];
-
-            if (this.lanes[key].length < 1)
-                return [dummyLanes["None"]];
-
-
             if (dummyFirst)
-                return [dummyLanes[key]].concat(this.lanes[key]);
+                return this.lanes[key];
             else
-                return this.lanes[key].slice().reverse().concat([dummyLanes[key]]);
+                return this.lanes[key].slice().reverse();
         }
         ,
         /**
@@ -259,11 +250,11 @@ var kanbanApp = new Vue({
 
             var url = addIssuePath + "?";
             if(rowLane.paramKey)
-                url += rowLane.paramKey + "=" + rowLane.id;
+                url += rowLane.paramKey + "=" + encodeURIComponent(rowLane.id);
             if(rowLane.paramKey && colLane.paramKey)
                 url += "&";
             if(colLane.paramKey)
-                url += colLane.paramKey + "=" + colLane.id;
+                url += colLane.paramKey + "=" + encodeURIComponent(colLane.id);
             return url;
         }
         ,
@@ -284,7 +275,6 @@ var kanbanApp = new Vue({
                 dataType: 'json'
             })
                 .done(function (data) {
-                    dummyLanes = data.dummyLanes;
                     this.lanes = data.lanes;
                     this.issues = data.issues;
 
@@ -465,5 +455,4 @@ $(function () {
  * @prop {issue[]} issues
  * @prop {Object} metrics
  * @prop {Lane[]} lanes
- * @prop {Lane[]} dummyLanes
  */
