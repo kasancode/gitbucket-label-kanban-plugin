@@ -350,12 +350,11 @@ trait labelKanbanControllerBase extends ControllerBase {
     )
   }
 
-  def createSummaryLanes(repositories: List[RepositoryInfo]): mutable.LinkedHashMap[String, List[ApiLaneKanban]] = {
-    mutable.LinkedHashMap(
-      "None" ->
-        List[ApiLaneKanban](createSummaryDummyLane("", "")),
-      "Label:" + prefix -> (
-        createSummaryDummyLane("", "") ::
+  def createSummaryLanes(repositories: List[RepositoryInfo]): mutable.LinkedHashMap[String, List[ApiLaneKanban]] = mutable.LinkedHashMap(
+    "None" ->
+      List[ApiLaneKanban](createSummaryDummyLane("", "")),
+    "Label:" + prefix -> (
+      createSummaryDummyLane("", "") ::
         repositories.flatMap(repository =>
           getLabels(repository.owner, repository.name)
             .filter(label =>
@@ -377,9 +376,9 @@ trait labelKanbanControllerBase extends ControllerBase {
             (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc
           }
           .reverse)
-      ,
-      "Priorities" -> (
-        createSummaryDummyLane("", "") ::
+    ,
+    "Priorities" -> (
+      createSummaryDummyLane("", "") ::
         repositories.flatMap(repository =>
           getPriorities(repository.owner, repository.name)
             .reverse
@@ -399,9 +398,9 @@ trait labelKanbanControllerBase extends ControllerBase {
             (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc
           }
           .reverse)
-      ,
-      "Assignees" -> (
-        createSummaryDummyLane("", "")::
+    ,
+    "Assignees" -> (
+      createSummaryDummyLane("", "") ::
         repositories.flatMap(repository =>
           getAssignableUserNames(repository.owner, repository.name)
             .map(assignee =>
@@ -410,21 +409,20 @@ trait labelKanbanControllerBase extends ControllerBase {
           .foldLeft(Nil: List[ApiLaneKanban]) {
             (acc, next) => if (acc.exists(_.id == next.id)) acc else next :: acc
           })
-      ,
-      "Repositories" ->
-        repositories.map(repository =>
-          ApiLaneKanban(
-            id = repository.name,
-            name = repository.name,
-            color = "838383",
-            iconImage = "",
-            icon = "",
-            htmlUrl = Some(ApiPath(s"/${RepositoryName(repository).fullName}")),
-            switchUrl = None,
-            paramKey = "")
-        )
-    )
-  }
+    ,
+    "Repositories" ->
+      repositories.map(repository =>
+        ApiLaneKanban(
+          id = repository.name,
+          name = repository.name,
+          color = "838383",
+          iconImage = "",
+          icon = "",
+          htmlUrl = Some(ApiPath(s"/${RepositoryName(repository).fullName}")),
+          switchUrl = None,
+          paramKey = "")
+      )
+  )
 
   def getApiIssue(issueId: Int, repository: RepositoryInfo): String = {
     val issue = getIssue(repository.owner, repository.name, issueId.toString).get
