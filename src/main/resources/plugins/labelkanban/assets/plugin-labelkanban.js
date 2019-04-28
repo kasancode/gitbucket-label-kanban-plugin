@@ -8,6 +8,46 @@ var addIssuePath;
 const compactStyleIssuesCount = 10;
 const cookieMaxAge = 30; //day
 
+// Polyfill
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
+if (!String.prototype.startsWith) {
+    Object.defineProperty(String.prototype, 'startsWith', {
+        value: function (search, pos) {
+            pos = !pos || pos < 0 ? 0 : +pos;
+            return this.substring(pos, pos + search.length) === search;
+        }
+    });
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
+if (!Array.prototype.find) {
+    Object.defineProperty(Array.prototype, 'find', {
+        value: function (predicate) {
+            if (this == null) {
+                throw new TypeError('"this" is null or not defined');
+            }
+            var o = Object(this);
+            var len = o.length >>> 0;
+            if (typeof predicate !== 'function') {
+                throw new TypeError('predicate must be a function');
+            }
+            var thisArg = arguments[1];
+            var k = 0;
+            while (k < len) {
+                var kValue = o[k];
+                if (predicate.call(thisArg, kValue, k, o)) {
+                    return kValue;
+                }
+                k++;
+            }
+            return undefined;
+        },
+        configurable: true,
+        writable: true
+    });
+}
+
+
 function getCookie(name) {
     var cookieName = name + '=';
     var allcookies = document.cookie;
@@ -34,11 +74,6 @@ function setCookie(name, value) {
 }
 
 
-if (!String.prototype.startsWith) {
-    String.prototype.startsWith = function (prefix) {
-        return this.lastIndexOf(prefix, 0) === 0;
-    }
-}
 
 /**
  * 
@@ -103,7 +138,7 @@ var kanbanApp = new Vue({
          * @returns {lane[]}
          */
         getLanes: function (key, dummyFirst) {
-            if(!this.lanes || !key || !this.lanes[key])
+            if (!this.lanes || !key || !this.lanes[key])
                 return null;
 
             if (dummyFirst)
@@ -156,11 +191,36 @@ var kanbanApp = new Vue({
         saveCookie: function () {
             setCookie("kanban.rowKey", this.rowKey);
             setCookie("kanban.colKey", this.colKey);
+            for (var key in this.lanes) {
+                setCookie("kanban.order." + key, JSON.stringify(this.lanes[key].map(function (item) {
+                    return { id: item.id, order: item.order };
+                })));
+            }
         }
         ,
         loadCookie: function () {
             this.rowKey = getCookie("kanban.rowKey") || this.rowKey;
             this.colKey = getCookie("kanban.colKey") || this.colKey;
+
+            for (var key in this.lanes) {
+                var orders = JSON.parse(getCookie("kanban.order." + key));
+                if (!orders || !orders.map) {
+                    continue;
+                }
+
+                orders.map(function (item) {
+                    var targetLane = this.lanes[key].find(function (lane) {
+                        return lane.id == item.id;
+                    });
+                    if (!!targetLane) {
+                        targetLane.order = item.order;
+                    }
+                }, this);
+
+                this.lanes[key].sort(function (a, b) {
+                    return a.order - b.order;
+                });
+            }
         }
         ,
         /**
@@ -245,15 +305,15 @@ var kanbanApp = new Vue({
          * @param {lane} colLane
          * @returns {String}
          */
-        getNewIssueUrl: function(rowLane, colLane){
-            if(!addIssuePath) return null;
+        getNewIssueUrl: function (rowLane, colLane) {
+            if (!addIssuePath) return null;
 
             var url = addIssuePath + "?";
-            if(rowLane.paramKey)
+            if (rowLane.paramKey)
                 url += rowLane.paramKey + "=" + encodeURIComponent(rowLane.id);
-            if(rowLane.paramKey && colLane.paramKey)
+            if (rowLane.paramKey && colLane.paramKey)
                 url += "&";
-            if(colLane.paramKey)
+            if (colLane.paramKey)
                 url += colLane.paramKey + "=" + encodeURIComponent(colLane.id);
             return url;
         }
@@ -312,6 +372,51 @@ var kanbanApp = new Vue({
 
             issue.metrics[key] = targetLane.id;
             return true;
+        }
+        ,
+        /**
+         * @param {string} key 
+         * @param {lane} lane
+         * @param {boolean} direction
+         */
+        changeLaneOrder: function (key, lane, direction) {
+            var target = null;
+            if (direction) {
+                // +
+                var min = Number.MAX_VALUE;
+                for (var i = 0; i < this.lanes[key].length; i++) {
+                    if (lane.order < this.lanes[key][i].order && this.lanes[key][i].order < min) {
+                        min = this.lanes[key][i].order;
+                        target = this.lanes[key][i];
+                    }
+                }
+            }
+            else {
+                // -
+                var max = -Number.MAX_VALUE;
+                for (var i = 0; i < this.lanes[key].length; i++) {
+                    if (max < this.lanes[key][i].order && this.lanes[key][i].order < lane.order) {
+                        max = this.lanes[key][i].order;
+                        target = this.lanes[key][i];
+                    }
+                }
+            }
+
+            if (target === null) {
+                return;
+            }
+
+            var tmp = target.order;
+            target.order = lane.order;
+            lane.order = tmp;
+
+            this.lanes[key].sort(function (a, b) {
+                return a.order - b.order;
+            });
+
+            this.$forceUpdate();
+
+            this.saveCookie();
         }
         ,
         /**
@@ -415,6 +520,8 @@ $(function () {
 * @prop {string} color
 * @prop {string} htmlUrl
 * @prop {string} switchUrl
+* @prop {string} paramKey
+* @prop {number} order
 */
 
 /**

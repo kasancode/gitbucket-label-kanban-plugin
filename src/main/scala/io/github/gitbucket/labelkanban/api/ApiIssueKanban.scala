@@ -104,10 +104,10 @@ object ApiIssueKanban {
                             assignedUserName: Option[String],
                             repository: String
                           ): Map[String, String] = Map(
-    "None" -> "",
-    "Label:" + prefix -> labels.find(_.labelName.startsWith(prefix)).map(_.labelName).getOrElse(""),
-    "Priorities" -> priority.map(_.priorityName).getOrElse(""),
-    "Assignees" -> assignedUserName.getOrElse(""),
+    "None" -> "-",
+    "Label:" + prefix -> labels.find(_.labelName.startsWith(prefix)).map(_.labelName).getOrElse("-"),
+    "Priorities" -> priority.map(_.priorityName).getOrElse("-"),
+    "Assignees" -> assignedUserName.getOrElse("-"),
     "Repositories" -> repository
   )
 }

@@ -93,11 +93,14 @@
                         <div class="kanban-column-body">
                         </div>
                     </div>
-                    <div class="kanban-column kanban-header" v-for="lane in getLanes(colKey, true)"
-                        v-bind:style="getLaneHeaderStyle(lane)">
+                    <div class="kanban-column kanban-header" v-for="colLane in getLanes(colKey, true)"
+                        v-bind:style="getLaneHeaderStyle(colLane)">
                         <div>
-                            <a v-bind:href="getLaneUrl(lane)"
-                                v-bind:disabled="!getLaneUrl(lane)">{{lane ? lane.name || "None" : "None"}}</a>
+                            <a v-bind:href="getLaneUrl(colLane)" v-bind:disabled="!getLaneUrl(colLane)">
+                                {{colLane ? colLane.name || "None" : "None"}}
+                            </a>
+                            <button v-on:click="changeLaneOrder(colKey, colLane, false)">-</button>
+                            <button v-on:click="changeLaneOrder(colKey, colLane, true)">+</button>
                         </div>
                     </div>
                 </div>
@@ -108,6 +111,8 @@
                             <a v-bind:href="getLaneUrl(rowLane)" v-bind:disabled="!getLaneUrl(rowLane)">
                                 {{rowLane ? rowLane.name || "None" : "None"}}
                             </a>
+                            <button v-on:click="changeLaneOrder(rowKey, rowLane, false)">-</button>
+                            <button v-on:click="changeLaneOrder(rowKey, rowLane, true)">+</button>
                         </div>
                     </div>
                     <div class="kanban-column" v-for="colLane in getLanes(colKey, true)" @if(editable){
