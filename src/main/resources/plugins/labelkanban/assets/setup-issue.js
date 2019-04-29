@@ -1,6 +1,6 @@
 
 var LabelKanbanPlugin = {
-    setupLabel: function (id) {
+    setupLabel: function (id, labelSetupPath) {
         if (!labelSetupPath)
             return;
         var $element = $('a.toggle-label[data-label-id="' + id + '"]');

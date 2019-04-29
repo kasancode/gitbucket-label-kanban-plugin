@@ -42,23 +42,21 @@ labelIds: Seq[String])(implicit context: gitbucket.core.controller.Context)
 </form>
 <script src="@context.path/plugin-assets/labelkanban/setup-issue.js"></script>
 <script>
-    var labelSetupPath = "@helpers.url(repository)/issues/new/label";
-
+$(function(){
 @labelIds.map{id =>
-    LabelKanbanPlugin.setupLabel('@id');
+    var labelSetupPath = "@helpers.url(repository)/issues/new/label";
+    LabelKanbanPlugin.setupLabel('@id', labelSetupPath);
 }
-
 @milestoneId.map{id =>
     LabelKanbanPlugin.setupMilestone('@id');
 }.getOrElse("")
-
 @priorityId.map{id =>
     LabelKanbanPlugin.setupPriority('@id');
 }.getOrElse("")
-
 @assigneeName.map{name =>
     LabelKanbanPlugin.setupAssignee('@name');
 }.getOrElse("")
+});
 </script>
 }
 }
