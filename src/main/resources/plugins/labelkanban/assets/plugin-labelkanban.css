@@ -39,11 +39,39 @@
     max-width: 300px;
 }
 
+.kanban-header:hover .kanban-header-button{
+    visibility: visible;
+}
+.kanban-header-button{
+    visibility: hidden;
+    margin: 0;
+	padding: 0;
+    cursor: pointer;
+	float: right;
+}
+
+.kanban-header-button button{
+	margin: 0;
+    border: 0;
+    padding: 0 2px;
+    color: #000;
+    font-weight: bold;
+    text-shadow: 0 1px 0 #fff;
+    filter: alpha(opacity=20);
+    background: transparent;
+    opacity: 0.5;
+	box-sizing: border-box;
+}
+
+.kanban-header-button button:hover{
+    opacity: 0.9;
+}
+
 .kanban-column-body{
     padding: 10px;
 }
 .kanban-column:hover .kanban-issue-dotted{
-    display: inherit;
+    visibility: visible;
 }
 
 .compact .kanban-column-body{
@@ -69,7 +97,7 @@
     border-radius: 3px;
     margin-bottom: 5px;
     padding: 3px;
-    display: none;
+    visibility: hidden;
 }
 
 .compact .kanban-issue{

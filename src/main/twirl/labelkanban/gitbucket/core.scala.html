@@ -99,8 +99,10 @@
                             <a v-bind:href="getLaneUrl(colLane)" v-bind:disabled="!getLaneUrl(colLane)">
                                 {{colLane ? colLane.name || "None" : "None"}}
                             </a>
-                            <button v-on:click="changeLaneOrder(colKey, colLane, false)">-</button>
-                            <button v-on:click="changeLaneOrder(colKey, colLane, true)">+</button>
+                            <div class="kanban-header-button">
+                                <button v-on:click="changeLaneOrder(colKey, colLane, false)"><i class="menu-icon octicon octicon-triangle-left"></i></button>
+                                <button v-on:click="changeLaneOrder(colKey, colLane, true)"><i class="menu-icon octicon octicon-triangle-right"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -111,8 +113,10 @@
                             <a v-bind:href="getLaneUrl(rowLane)" v-bind:disabled="!getLaneUrl(rowLane)">
                                 {{rowLane ? rowLane.name || "None" : "None"}}
                             </a>
-                            <button v-on:click="changeLaneOrder(rowKey, rowLane, false)">-</button>
-                            <button v-on:click="changeLaneOrder(rowKey, rowLane, true)">+</button>
+                            <div class="kanban-header-button">
+                                <button v-on:click="changeLaneOrder(rowKey, rowLane, false)"><i class="menu-icon octicon octicon-triangle-down"></i></button>
+                                <button v-on:click="changeLaneOrder(rowKey, rowLane, true)"><i class="menu-icon octicon octicon-triangle-up"></i></button>
+                            </div>
                         </div>
                     </div>
                     <div class="kanban-column" v-for="colLane in getLanes(colKey, true)" @if(editable){
