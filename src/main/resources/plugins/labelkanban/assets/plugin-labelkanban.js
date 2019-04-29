@@ -220,6 +220,11 @@ var kanbanApp = new Vue({
                 this.lanes[key].sort(function (a, b) {
                     return a.order - b.order;
                 });
+
+                // fix irregular condition
+                for(var i=0;i<this.lanes[key].length;i++){
+                    this.lanes[key][i].order = i;
+                }
             }
         }
         ,
