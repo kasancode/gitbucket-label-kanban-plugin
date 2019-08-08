@@ -2,11 +2,6 @@ sudo: false
 language: scala
 scala:
 jdk:
-  - openjdk8
   - openjdk11
 script:
   - sbt test
-addons:
-  apt:
-    packages:
-      openjdk-8-jdk
