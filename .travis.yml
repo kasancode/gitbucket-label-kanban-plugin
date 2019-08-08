@@ -1,10 +1,12 @@
-sudo: true
+sudo: false
 language: scala
 scala:
-- 2.13.0
 jdk:
-- openjdk8
-- openjdk11
+  - openjdk8
+  - openjdk11
 script:
-- sbt test
-
+  - sbt test
+addons:
+  apt:
+    packages:
+      openjdk-8-jdk
