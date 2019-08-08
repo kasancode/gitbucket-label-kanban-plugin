@@ -1,6 +1,15 @@
 package io.github.gitbucket.labelkanban.controller
 
 import labelkanban.gitbucket.html
+
+import gitbucket.core.service.IssuesService._
+import gitbucket.core.service._
+import gitbucket.core.util.SyntaxSugars._
+import gitbucket.core.util.Implicits._
+import gitbucket.core.util._
+import gitbucket.core.view
+import gitbucket.core.view.Markdown
+
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service._
@@ -13,7 +22,7 @@ import org.scalatra.{Created, NotFound, UnprocessableEntity}
 import java.util.Date
 
 import gitbucket.core.model.{Label, Milestone, Priority}
-import gitbucket.core.service.IssuesService.IssueSearchCondition
+import gitbucket.core.service.IssuesService._
 import gitbucket.core.util.SyntaxSugars.defining
 
 import scala.collection.mutable
@@ -26,15 +35,18 @@ class LabelKanbanController extends labelKanbanControllerBase
   with LabelsService
   with MilestonesService
   with ActivityService
-  with HandleCommentService
   with IssueCreationService
+  with WebHookIssueCommentService
+  with WebHookPullRequestService
   with ReadableUsersAuthenticator
   with ReferrerAuthenticator
   with WritableUsersAuthenticator
-  with PullRequestService
-  with WebHookIssueCommentService
-  with CommitsService
   with PrioritiesService
+  with PullRequestService
+  with CommitsService
+  with WebHookService
+  with MergeService
+  with WebHookPullRequestReviewCommentService
 
 trait labelKanbanControllerBase extends ControllerBase {
 
@@ -45,14 +57,12 @@ trait labelKanbanControllerBase extends ControllerBase {
     with LabelsService
     with MilestonesService
     with ActivityService
-    with HandleCommentService
     with IssueCreationService
+    with WebHookIssueCommentService
+    with WebHookPullRequestService
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
-    with PullRequestService
-    with WebHookIssueCommentService
-    with CommitsService
     with PrioritiesService =>
 
   val prefix = "@"
