@@ -1,6 +1,7 @@
 sudo: false
 language: scala
 scala:
+  - 2.13.0
 jdk:
   - openjdk11
 script:
