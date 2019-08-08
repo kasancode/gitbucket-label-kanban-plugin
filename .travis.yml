@@ -3,6 +3,6 @@ language: scala
 scala:
   - 2.13.0
 jdk:
-  - openjdk11
+  - openjdk8
 script:
   - sbt test
