@@ -92,7 +92,6 @@ trait labelKanbanControllerBase extends ControllerBase {
   get("/summarykanban/:owner") {
     val account = getAccountByUserName(params("owner"))
     val repos = getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
-        .filter(_.repository.options.issuesOption != "DISABLE")
 
     html.summary(prefix, repos, account.get)
   }
@@ -163,7 +162,8 @@ trait labelKanbanControllerBase extends ControllerBase {
     val groups = user :: getGroupsByUserName(user)
     val repositories = getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
       .filter(r =>
-        (groups.contains(r.owner) ||
+        (r.repository.options.issuesOption != "DISABLE" &&
+          groups.contains(r.owner) ||
           getCollaborators(r.owner, r.repository.repositoryName).exists(c => c._1.collaboratorName == user)) &&
           countIssue(IssueSearchCondition(), false, (r.owner, r.repository.repositoryName)) > 0
       )
