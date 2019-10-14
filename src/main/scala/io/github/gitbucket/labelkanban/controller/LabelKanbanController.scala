@@ -70,10 +70,17 @@ trait labelKanbanControllerBase extends ControllerBase {
   get("/:owner/:repository/labelkanban")(
     referrersOnly {
       repository: RepositoryInfo => {
-        html.repository(
-          prefix,
-          repository
-        )
+        if(repository.repository.options.issuesOption == "DISABLE") {
+          repository.repository.options.externalIssuesUrl match {
+            case Some(value) => redirect(value)
+            case None => NotFound()
+          }
+        }else {
+          html.repository(
+            prefix,
+            repository
+          )
+        }
       }
     }
   )
@@ -85,6 +92,7 @@ trait labelKanbanControllerBase extends ControllerBase {
   get("/summarykanban/:owner") {
     val account = getAccountByUserName(params("owner"))
     val repos = getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
+        .filter(_.repository.options.issuesOption != "DISABLE")
 
     html.summary(prefix, repos, account.get)
   }
@@ -103,7 +111,9 @@ trait labelKanbanControllerBase extends ControllerBase {
   }
 
   get("/:owner/:repository/labelkanban/issues/new")(readableUsersOnly { repository =>
-    if (isIssueEditable(repository)) {
+    if(repository.repository.options.issuesOption == "DISABLE")
+      notFound()
+    else if (isIssueEditable(repository)) {
       val labelIds = multiParams("label")
       val milestoneId = params.get("milestone")
       val priorityId = params.get("priority")
