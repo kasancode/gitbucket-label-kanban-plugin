@@ -42,7 +42,7 @@ class Plugin extends gitbucket.core.plugin.Plugin {
   // "override val" is difficult to resolve url
 
   override val globalMenus = Seq(
-    (context: Context) => if (context.loginAccount.isDefined) Some(Link("summarykanban", "Summary board", "summarykanban")) else None
+    (context: Context) => if (context.loginAccount.isDefined) Some(Link("summarykanban", "Summary board", s"summarykanban/${context.loginAccount.get.userName}/")) else None
   )
 
   override val repositoryMenus = Seq(
@@ -54,6 +54,6 @@ class Plugin extends gitbucket.core.plugin.Plugin {
   )
 
   override val dashboardTabs = Seq(
-    (context: Context) => Some(Link("summarykanban", "Summary board", s"summarykanban"))
+    (context: Context) => if (context.loginAccount.isDefined) Some(Link("summarykanban", "Summary board", s"summarykanban/${context.loginAccount.get.userName}/")) else None
   )
 }

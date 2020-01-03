@@ -9,7 +9,6 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import gitbucket.core.view
 import gitbucket.core.view.Markdown
-
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service._
@@ -21,11 +20,16 @@ import io.github.gitbucket.labelkanban.service.LabelKanbanService
 import org.scalatra.{Created, NotFound, UnprocessableEntity}
 import java.util.Date
 
-import gitbucket.core.model.{Label, Milestone, Priority}
+import org.json4s._
+import org.scalatra.util.UrlCodingUtils._
+import gitbucket.core.model.{Issue, Label, Milestone, Priority}
 import gitbucket.core.service.IssuesService._
 import gitbucket.core.util.SyntaxSugars.defining
+import org.scalatra.util
 
 import scala.collection.mutable
+
+case class kanbanOrder(id:String, order:Int)
 
 class LabelKanbanController extends labelKanbanControllerBase
   with LabelKanbanService
@@ -70,12 +74,12 @@ trait labelKanbanControllerBase extends ControllerBase {
   get("/:owner/:repository/labelkanban")(
     referrersOnly {
       repository: RepositoryInfo => {
-        if(repository.repository.options.issuesOption == "DISABLE") {
+        if (repository.repository.options.issuesOption == "DISABLE") {
           repository.repository.options.externalIssuesUrl match {
             case Some(value) => redirect(value)
             case None => NotFound()
           }
-        }else {
+        } else {
           html.repository(
             prefix,
             repository
@@ -85,15 +89,20 @@ trait labelKanbanControllerBase extends ControllerBase {
     }
   )
 
-  get("/summarykanban") {
-    redirect(s"/summarykanban/${context.loginAccount.map(_.userName).getOrElse("")}")
-  }
-
   get("/summarykanban/:owner") {
     val account = getAccountByUserName(params("owner"))
     val repos = getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
 
     html.summary(prefix, repos, account.get)
+  }
+
+  get("/summarykanban/:owner/kanban.csv") {
+    val user = params("owner")
+
+    val lanes = createSummaryLanes(user)
+    val issues = createSummaryApiIssueKanbans(user)
+
+    downloadCsv(lanes, issues)
   }
 
   get("/summarykanban/:owner/profile") {
@@ -109,8 +118,17 @@ trait labelKanbanControllerBase extends ControllerBase {
     }.getOrElse(NotFound())
   }
 
+  get("/summarykanban/:owner/profile/kanban.csv") {
+    val user = params("owner")
+
+    val lanes = createSummaryLanes(user)
+    val issues = createSummaryApiIssueKanbans(user)
+
+    downloadCsv(lanes, issues)
+  }
+
   get("/:owner/:repository/labelkanban/issues/new")(readableUsersOnly { repository =>
-    if(repository.repository.options.issuesOption == "DISABLE")
+    if (repository.repository.options.issuesOption == "DISABLE")
       notFound()
     else if (isIssueEditable(repository)) {
       val labelIds = multiParams("label")
@@ -138,24 +156,22 @@ trait labelKanbanControllerBase extends ControllerBase {
     } else Unauthorized()
   })
 
+  get("/:owner/:repository/labelkanban/kanban.csv")(referrersOnly { repository =>
+    val lanes = createLanes(repository)
+    val issues = createApiIssueKanbans(repository)
+
+    downloadCsv(lanes, issues)
+  })
+
+
   get("/api/v3/repos/:owner/:repository/plugin/labelkanban/dataset")(referrersOnly { repository =>
     JsonFormat(
       ApiDataSetKanban(
-        getOpenIssues(repository.owner, repository.name)
-          .map(issue =>
-            ApiIssueKanban(
-              issue,
-              getIssueLabels(repository.owner, repository.name, issue.issueId),
-              prefix,
-              RepositoryName(repository)
-            )
-          )
-        ,
+        createApiIssueKanbans(repository),
         createLanes(repository)
       )
     )
-  }
-  )
+  })
 
   get("/api/v3/:owner/plugin/summarykanban/dataset") {
     val user = params("owner")
@@ -170,20 +186,8 @@ trait labelKanbanControllerBase extends ControllerBase {
 
     JsonFormat(
       ApiDataSetKanban(
-        repositories
-          .flatMap(repository =>
-            getOpenIssues(repository.owner, repository.name)
-              .map(issue =>
-                ApiIssueKanban.applySummary(
-                  issue,
-                  getIssueLabels(repository.owner, repository.name, issue.issueId),
-                  prefix,
-                  getPriorities(repository.owner, repository.name)
-                )
-              )
-          )
-        ,
-        createSummaryLanes(repositories)
+        createSummaryApiIssueKanbans(user),
+        createSummaryLanes(user)
       )
     )
   }
@@ -291,7 +295,6 @@ trait labelKanbanControllerBase extends ControllerBase {
     getApiIssue(issueId, repository)
   })
 
-
   def createDummyLane(key: String, id: String, repository: RepositoryInfo): ApiLaneKanban = {
     ApiLaneKanban(
       id = id,
@@ -376,105 +379,109 @@ trait labelKanbanControllerBase extends ControllerBase {
     )
   }
 
-  def createSummaryLanes(repositories: List[RepositoryInfo]): mutable.LinkedHashMap[String, List[ApiLaneKanban]] = mutable.LinkedHashMap(
-    "None" ->
-      List[ApiLaneKanban](createSummaryDummyLane("-")),
-    "Label:" + prefix -> (
-      createSummaryDummyLane("-") ::
-        repositories.flatMap(repository =>
-          getLabels(repository.owner, repository.name)
-        )
-          .filter(label =>
-            label.labelName.startsWith(prefix))
-          .sortBy(label =>
-            label.labelName)
-          .reverse
-          .foldLeft(Nil: List[Label]) {
-            (acc, next) => if (acc.exists(_.labelName == next.labelName)) acc else next :: acc
-          }
-          .zipWithIndex
-          .map { case (label, index) =>
-            ApiLaneKanban(
-              id = label.labelName,
-              name = label.labelName,
-              color = label.color,
-              iconImage = "",
-              icon = "",
-              htmlUrl = None,
-              switchUrl = None,
-              paramKey = "",
-              order = index + 1
-            )
-          }
-      )
+  def createSummaryLanes(user: String): mutable.LinkedHashMap[String, List[ApiLaneKanban]] = {
+    val repositories = getRelatedRepositories(user)
 
-    ,
-    "Priorities" -> (
-      createSummaryDummyLane("-") ::
-        repositories.flatMap(repository =>
-          getPriorities(repository.owner, repository.name)
+    mutable.LinkedHashMap(
+      "None" ->
+        List[ApiLaneKanban](createSummaryDummyLane("-")),
+      "Label:" + prefix -> (
+        createSummaryDummyLane("-") ::
+          repositories.flatMap(repository =>
+            getLabels(repository.owner, repository.name)
+          )
+            .filter(label =>
+              label.labelName.startsWith(prefix))
+            .sortBy(label =>
+              label.labelName)
+            .reverse
+            .foldLeft(Nil: List[Label]) {
+              (acc, next) => if (acc.exists(_.labelName == next.labelName)) acc else next :: acc
+            }
+            .zipWithIndex
+            .map { case (label, index) =>
+              ApiLaneKanban(
+                id = label.labelName,
+                name = label.labelName,
+                color = label.color,
+                iconImage = "",
+                icon = "",
+                htmlUrl = None,
+                switchUrl = None,
+                paramKey = "",
+                order = index + 1
+              )
+            }
         )
-          .foldLeft(Nil: List[Priority]) {
-            (acc, next) => if (acc.exists(_.priorityName == next.priorityName)) acc else next :: acc
-          }
-          .zipWithIndex
-          .map { case (priority, index) =>
-            ApiLaneKanban(
-              id = priority.priorityName, // avoid priorityName == "-"
-              name = priority.priorityName,
-              color = priority.color,
-              iconImage = "",
-              icon = "",
-              htmlUrl = None,
-              switchUrl = None,
-              paramKey = "",
-              order = index + 1
-            )
-          }
-      )
 
-    ,
-    "Assignees" -> (
-      createSummaryDummyLane("-") ::
-        repositories.flatMap(repository =>
-          getAssignableUserNames(repository.owner, repository.name)
+      ,
+      "Priorities" -> (
+        createSummaryDummyLane("-") ::
+          repositories.flatMap(repository =>
+            getPriorities(repository.owner, repository.name)
+          )
+            .foldLeft(Nil: List[Priority]) {
+              (acc, next) => if (acc.exists(_.priorityName == next.priorityName)) acc else next :: acc
+            }
+            .zipWithIndex
+            .map { case (priority, index) =>
+              ApiLaneKanban(
+                id = priority.priorityName, // avoid priorityName == "-"
+                name = priority.priorityName,
+                color = priority.color,
+                iconImage = "",
+                icon = "",
+                htmlUrl = None,
+                switchUrl = None,
+                paramKey = "",
+                order = index + 1
+              )
+            }
         )
-          .foldLeft(Nil: List[String]) {
-            (acc, next) => if (acc.contains(next)) acc else next :: acc
-          }
+
+      ,
+      "Assignees" -> (
+        createSummaryDummyLane("-") ::
+          repositories.flatMap(repository =>
+            getAssignableUserNames(repository.owner, repository.name)
+          )
+            .foldLeft(Nil: List[String]) {
+              (acc, next) => if (acc.contains(next)) acc else next :: acc
+            }
+            .zipWithIndex
+            .map { case (assignee, index) =>
+              ApiLaneKanban(
+                id = assignee,
+                name = assignee,
+                color = "838383",
+                iconImage = "",
+                icon = "",
+                htmlUrl = None,
+                switchUrl = None,
+                paramKey = "",
+                order = index + 1
+              )
+            }
+        )
+
+      ,
+      "Repositories" ->
+        repositories
           .zipWithIndex
-          .map { case (assignee, index) =>
+          .map { case (repository, index) =>
             ApiLaneKanban(
-              id = assignee,
-              name = assignee,
+              id = repository.name,
+              name = repository.name,
               color = "838383",
               iconImage = "",
               icon = "",
-              htmlUrl = None,
+              htmlUrl = Some(ApiPath(s"/${RepositoryName(repository).fullName}")),
               switchUrl = None,
               paramKey = "",
-              order = index + 1
-            )
+              order = index)
           }
-      )
-
-    ,
-    "Repositories" ->
-      repositories
-        .zipWithIndex
-        .map { case (repository, index) =>
-          ApiLaneKanban(
-            id = repository.name,
-            name = repository.name,
-            color = "838383",
-            iconImage = "",
-            icon = "",
-            htmlUrl = Some(ApiPath(s"/${RepositoryName(repository).fullName}")),
-            switchUrl = None,
-            paramKey = "",
-            order = index)
-        }
-  )
+    )
+  }
 
   def getApiIssue(issueId: Int, repository: RepositoryInfo): String = {
     val issue = getIssue(repository.owner, repository.name, issueId.toString).get
@@ -499,5 +506,87 @@ trait labelKanbanControllerBase extends ControllerBase {
     text.toInt
   } catch {
     case _: java.lang.NumberFormatException => default
+  }
+
+  def toLaneName(lanes: List[ApiLaneKanban], id: String): String = {
+    lanes
+      .find(l => l.id == id)
+      .map(l => if (l.name.isEmpty) "None" else l.name)
+      .getOrElse("None")
+      .replace("\"", "\"\"")
+  }
+
+  def downloadCsv(laneMap: mutable.LinkedHashMap[String, List[ApiLaneKanban]], issues: List[ApiIssueKanban]): String = {
+    contentType = "text/csv"
+
+    val rowKeyEnc = cookies.get("kanban.rowKey").getOrElse("None")
+    val colKeyEnc = cookies.get("kanban.colKey").getOrElse("None")
+    val rowKey = urlDecode(rowKeyEnc)
+    val colKey = urlDecode(colKeyEnc)
+
+    val rowOrderStr = urlDecode(cookies.get("kanban.order." + rowKeyEnc).getOrElse("[]"))
+    val colOrderStr = urlDecode(cookies.get("kanban.order." + colKeyEnc).getOrElse("[]"))
+
+    val rowOrders = jackson.parseJson(rowOrderStr).extract[List[kanbanOrder]]
+    val colOrders = jackson.parseJson(colOrderStr).extract[List[kanbanOrder]]
+
+    var csv = "\"" + rowKey.replace("\"", "\"\"") + "/" + colKey.replace("\"", "\"\"") + "\",\"" + colOrders
+      .map(c => toLaneName(laneMap(colKey), c.id))
+      .mkString("\",\"") + "\"\n"
+
+    for (rowOrder <- rowOrders.reverse) {
+      csv += "\"" + toLaneName(laneMap(rowKey), rowOrder.id) + "\""
+      for (colOrder <- colOrders) {
+        csv += ",\"" + issues
+          .filter(issue =>
+            issue.metrics(rowKey) == rowOrder.id && issue.metrics(colKey) == colOrder.id
+          )
+          .map(issue => issue.title.replace("\"", "\"\""))
+          .mkString("\n") + "\""
+      }
+      csv += "\n"
+    }
+    csv
+  }
+
+  def createApiIssueKanbans(repository: RepositoryInfo): List[ApiIssueKanban] = {
+    getOpenIssues(repository.owner, repository.name)
+      .map(issue =>
+        ApiIssueKanban(
+          issue,
+          getIssueLabels(repository.owner, repository.name, issue.issueId),
+          prefix,
+          RepositoryName(repository)
+        )
+      )
+  }
+
+  def getRelatedRepositories(user: String): List[RepositoryInfo] = {
+    val groups = user :: getGroupsByUserName(user)
+
+    getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true)
+      .filter(r =>
+        (r.repository.options.issuesOption != "DISABLE" &&
+          groups.contains(r.owner) ||
+          getCollaborators(r.owner, r.repository.repositoryName).exists(c => c._1.collaboratorName == user)) &&
+          countIssue(IssueSearchCondition(), false, (r.owner, r.repository.repositoryName)) > 0
+      )
+  }
+
+  def createSummaryApiIssueKanbans(user: String): List[ApiIssueKanban] = {
+    val repositories = getRelatedRepositories(user)
+
+    repositories
+      .flatMap(repository =>
+        getOpenIssues(repository.owner, repository.name)
+          .map(issue =>
+            ApiIssueKanban.applySummary(
+              issue,
+              getIssueLabels(repository.owner, repository.name, issue.issueId),
+              prefix,
+              getPriorities(repository.owner, repository.name)
+            )
+          )
+      )
   }
 }

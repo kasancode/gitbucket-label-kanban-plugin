@@ -159,6 +159,9 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <a href="@(if(context.currentPath.last=='/') context.currentPath.init else context.currentPath)/kanban.csv">Download as CSV</a>
+        </div>
     </div>
 </div>
 <script src="@context.path/plugin-assets/labelkanban/vue.min.js"></script>

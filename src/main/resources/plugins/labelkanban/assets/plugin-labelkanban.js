@@ -49,7 +49,7 @@ if (!Array.prototype.find) {
 
 
 function getCookie(name) {
-    var cookieName = name + '=';
+    var cookieName = encodeURIComponent(name) + '=';
     var allcookies = document.cookie;
 
     var position = allcookies.indexOf(cookieName);
@@ -70,7 +70,7 @@ function getCookie(name) {
 
 function setCookie(name, value) {
     var maxAge = 60 * 60 * 24 * cookieMaxAge;
-    document.cookie = name + "=" + encodeURIComponent(value) + "; max-age=" + maxAge.toString();
+    document.cookie = encodeURIComponent(name) + "=" + encodeURIComponent(value) + "; max-age=" + maxAge.toString();
 }
 
 
