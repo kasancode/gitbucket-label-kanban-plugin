@@ -160,7 +160,9 @@
             </div>
         </div>
         <div class="row">
-            <a href="@(if(context.currentPath.last=='/') context.currentPath.init else context.currentPath)/kanban.csv">Download as CSV</a>
+            <div class="col-md-12">
+                <a href="@context.currentPath@(if(context.currentPath.last=='/') "" else "/")kanban.csv">Export board to CSV</a>
+            </div>
         </div>
     </div>
 </div>
