@@ -1,7 +1,7 @@
 package io.github.gitbucket.labelkanban.controller
 
 import labelkanban.gitbucket.html
-
+import java.nio.charset.StandardCharsets
 import gitbucket.core.service.IssuesService._
 import gitbucket.core.service._
 import gitbucket.core.util.SyntaxSugars._
@@ -25,6 +25,7 @@ import org.scalatra.util.UrlCodingUtils._
 import gitbucket.core.model.{Issue, Label, Milestone, Priority}
 import gitbucket.core.service.IssuesService._
 import gitbucket.core.util.SyntaxSugars.defining
+import org.apache.commons.io.ByteOrderMark
 import org.scalatra.util
 
 import scala.collection.mutable
@@ -516,7 +517,7 @@ trait labelKanbanControllerBase extends ControllerBase {
       .replace("\"", "\"\"")
   }
 
-  def downloadCsv(laneMap: mutable.LinkedHashMap[String, List[ApiLaneKanban]], issues: List[ApiIssueKanban]): String = {
+  def downloadCsv(laneMap: mutable.LinkedHashMap[String, List[ApiLaneKanban]], issues: List[ApiIssueKanban]): Array[Byte] = {
     contentType = "text/csv"
 
     val rowKeyEnc = cookies.get("kanban.rowKey").getOrElse("None")
@@ -546,7 +547,7 @@ trait labelKanbanControllerBase extends ControllerBase {
       }
       csv += "\n"
     }
-    csv
+    ByteOrderMark.UTF_8.getBytes ++ csv.getBytes(StandardCharsets.UTF_8)
   }
 
   def createApiIssueKanbans(repository: RepositoryInfo): List[ApiIssueKanban] = {
