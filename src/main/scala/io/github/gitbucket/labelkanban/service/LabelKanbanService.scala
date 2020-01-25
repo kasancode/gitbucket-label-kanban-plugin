@@ -1,12 +1,10 @@
 package io.github.gitbucket.labelkanban.service
 
-import gitbucket.core.model.{
-  Issue
-}
+import gitbucket.core.model.Issue
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
-
+import java.security.MessageDigest
 
 trait LabelKanbanService {
   def getOpenIssues(owner: String, repository: String)(implicit s: Session): List[Issue] = {

@@ -16,7 +16,7 @@ import gitbucket.core.util._
 import gitbucket.core.api._
 import gitbucket.core.util.Implicits._
 import io.github.gitbucket.labelkanban.api._
-import io.github.gitbucket.labelkanban.service.LabelKanbanService
+import io.github.gitbucket.labelkanban.service.{LabelKanbanService,KanbanHelpers}
 import org.scalatra.{Created, NotFound, UnprocessableEntity}
 import java.util.Date
 
@@ -263,7 +263,7 @@ trait labelKanbanControllerBase extends ControllerBase {
       case _ => None
     }
 
-    updateMilestoneId(repository.owner, repository.name, issueId, milestoneId, true)
+    updateMilestoneId(repository.owner, repository.name, issueId, milestoneId, insertComment = true)
 
     getApiIssue(issueId, repository)
   })
@@ -406,7 +406,7 @@ trait labelKanbanControllerBase extends ControllerBase {
                 name = label.labelName,
                 color = label.color,
                 iconImage = "",
-                icon = "",
+                icon = "octicon octicon-tag",
                 htmlUrl = None,
                 switchUrl = None,
                 paramKey = "",
@@ -431,7 +431,7 @@ trait labelKanbanControllerBase extends ControllerBase {
                 name = priority.priorityName,
                 color = priority.color,
                 iconImage = "",
-                icon = "",
+                icon = "octicon octicon-flame",
                 htmlUrl = None,
                 switchUrl = None,
                 paramKey = "",
@@ -454,9 +454,9 @@ trait labelKanbanControllerBase extends ControllerBase {
               ApiLaneKanban(
                 id = assignee,
                 name = assignee,
-                color = "838383",
+                color = KanbanHelpers.toColorString(assignee),
                 iconImage = "",
-                icon = "",
+                icon = "octicon octicon-person",
                 htmlUrl = None,
                 switchUrl = None,
                 paramKey = "",
@@ -473,9 +473,9 @@ trait labelKanbanControllerBase extends ControllerBase {
             ApiLaneKanban(
               id = repository.name,
               name = repository.name,
-              color = "838383",
+              color = KanbanHelpers.toColorString(repository.name),
               iconImage = "",
-              icon = "",
+              icon = "octicon octicon-repo",
               htmlUrl = Some(ApiPath(s"/${RepositoryName(repository).fullName}")),
               switchUrl = None,
               paramKey = "",

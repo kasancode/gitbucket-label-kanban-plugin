@@ -4,6 +4,8 @@ import gitbucket.core.api.{ApiPath, FieldSerializable}
 import gitbucket.core.model.{Label, Milestone, Priority}
 import gitbucket.core.util.RepositoryName
 import gitbucket.core.view.helpers
+import io.github.gitbucket.labelkanban.service.KanbanHelpers
+
 
 case class ApiLaneKanban(
                           id : String,
@@ -25,7 +27,7 @@ object ApiLaneKanban {
       name = label.labelName,
       color = label.color,
       iconImage = "",
-      icon = "",
+      icon = "octicon octicon-tag",
       htmlUrl = Some(ApiPath(s"/${repositoryName.fullName}/issues?labels=${helpers.urlEncode(label.labelName)}&state=open")),
       switchUrl = Some(ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/label/${label.labelId}/switch/issue/")),
       paramKey = "label",
@@ -36,9 +38,9 @@ object ApiLaneKanban {
     ApiLaneKanban(
       id = milestone.milestoneId.toString,
       name = milestone.title,
-      color = "838383",
+      color = KanbanHelpers.toColorString(milestone.title),
       iconImage = "",
-      icon = "",
+      icon = "octicon octicon-milestone",
       htmlUrl = Some(ApiPath(s"/${repositoryName.fullName}/issues?milestone=${helpers.urlEncode(milestone.title)}&state=open")),
       switchUrl = Some(ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/milestone/${milestone.milestoneId}/switch/issue/")),
       paramKey = "milestone",
@@ -49,9 +51,9 @@ object ApiLaneKanban {
     ApiLaneKanban(
       id = userName,
       name = userName,
-      color = "838383",
+      color = KanbanHelpers.toColorString(userName),
       iconImage = "",
-      icon = "",
+      icon = "octicon octicon-person",
       htmlUrl = Some(ApiPath(s"/${repositoryName.fullName}/issues?assigned=${helpers.urlEncode(userName)}&state=open")),
       switchUrl = Some(ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/assignee/${userName}/switch/issue/")),
       paramKey = "assignee",
@@ -64,7 +66,7 @@ object ApiLaneKanban {
       name = priority.priorityName,
       color = priority.color,
       iconImage = "",
-      icon = "",
+      icon = "octicon octicon-flame",
       htmlUrl = Some(ApiPath(s"/${repositoryName.fullName}/issues?priority=${helpers.urlEncode(priority.priorityName)}&state=open")),
       switchUrl = Some(ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/priority/${priority.priorityId}/switch/issue/")),
       paramKey = "priority",

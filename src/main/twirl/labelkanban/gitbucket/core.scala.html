@@ -72,7 +72,7 @@
                                 v-on:click="addNewLabel()" />
                         </div>
                         <div class="input-group  input-group-sm">
-                            <input type="button" id="kanban-label-submit" class="btn btn-sm btn-default" value="Cancel"
+                            <input type="button" id="kanban-label-cancel" class="btn btn-sm btn-default" value="Cancel"
                                 v-on:click="toggleLabelEditor()" />
                         </div>
                     </span>
@@ -128,12 +128,16 @@
                                 class="kanban-issue panel panel-default" }
                                 v-for="issue in getIssues(getIssues(issues, rowKey, rowLane), colKey, colLane)">
                                 <div class="kanban-issue-header panel-heading">
-                                    <a v-bind:href="issue ? issue.htmlUrl : ''">{{issue.title}} <span
-                                            class="text-muted">#{{issue.issueId}}</span></a>
-                                    <span class="kanban-expand-button pull-right text-muted"
-                                        v-on:click="showComments(issue)">
-                                        <span
-                                            v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
+                                    <a v-bind:href="issue ? issue.htmlUrl : ''">{{issue.title}} <span class="text-muted">#{{issue.issueId}}</span></a>
+                                    <span class="kanban-expand-button pull-right text-muted" v-on:click="showComments(issue)">
+                                        <span v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
+                                    </span>
+                                    <span class="pull-right">
+                                        <span v-for="(value, name) in issue.metrics">
+                                            <a v-if="value" v-bind:href="laneUrl(name,value)" v-bind:title="laneName(name,value)" data-toggle="tooltip">
+                                                <i v-bind:class="iconClass(name,value)" v-bind:style="{color:iconColor(name,value)}"> </i>
+                                            </a>
+                                        </span>
                                     </span>
                                 </div>
                                 <transition-group name="kanban-expand">

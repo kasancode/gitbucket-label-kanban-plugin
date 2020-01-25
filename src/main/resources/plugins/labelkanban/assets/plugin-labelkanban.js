@@ -160,6 +160,46 @@ var kanbanApp = new Vue({
         }
         ,
         /**
+         * @param {string} key
+         * @param {string} value
+         * @returns {string}
+         */
+        iconClass: function (key, value) {
+            let lane = this.lanes[key].find(l => l.id === value);
+            return lane ? lane.icon : "";
+        }
+        ,
+        /**
+         * @param {string} key
+         * @param {string} value
+         * @returns {string}
+         */
+        iconColor: function (key,value) {
+            let lane = this.lanes[key].find(l => l.id === value);
+            return lane ? "#" + lane.color : "#333333";
+        }
+        ,
+        /**
+         * @param {string} key
+         * @param {string} value
+         * @returns {string}
+         */
+        laneName: function (key,value) {
+            let lane = this.lanes[key].find(l => l.id === value);
+            return lane ? lane.name : "";
+        }
+        ,
+        /**
+         * @param {string} key
+         * @param {string} value
+         * @returns {string}
+         */
+        laneUrl: function (key,value) {
+            let lane = this.lanes[key].find(l => l.id === value);
+            return lane ? lane.htmlUrl : "";
+        }
+        ,
+        /**
          * @returns {string}
          */
         getColWidth: function () {
@@ -478,6 +518,10 @@ var kanbanApp = new Vue({
             this.newLabelColor = "#888888";
             this.message = "";
         }
+    }
+    ,
+    updated: function(){
+        $('[data-toggle="tooltip"]').tooltip();
     }
 });
 

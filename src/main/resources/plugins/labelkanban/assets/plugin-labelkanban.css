@@ -118,10 +118,15 @@
     }
 }
 
-.kanban-issue-header{
+.kanban-issue-header,
+.kanban-issue-footer{
     font-size: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+.kanban-issue-footer{
+    border-top: 0;
+    background-color: white;
 }
 
 .compact .kanban-issue-header{
@@ -130,7 +135,7 @@
 }
 
 .kanban-issue-header a{
-    color:#333;
+    color:#333333;
 }
 
 .kanban-issue-header .text-muted{
@@ -140,6 +145,12 @@
 
 .compact .issue-body{
     font-size: 90%;
+    padding: 5px;
+}
+
+
+.compact .kanban-issue-footer{
+    font-size: 95%;
     padding: 5px;
 }
 
