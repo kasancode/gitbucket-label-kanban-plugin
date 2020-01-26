@@ -129,9 +129,29 @@
     background-color: white;
 }
 
+.kanban-icon{
+    vertical-align: middle;
+}
+
+.kanban-close{
+    border-radius: 3px;
+    padding: 2px 5px 2px 5px;
+    cursor: pointer;
+}
+.kanban-close :hover{
+}
 .compact .kanban-issue-header{
     font-size: 95%;
     padding: 5px;
+}
+
+.kanban-avatar{
+    width: 16px;
+    height: 16px;
+    margin-left: 4px;
+    margin-right: 4px;
+    vertical-align: middle;
+    display: inline-block;
 }
 
 .kanban-issue-header a{

@@ -1,6 +1,7 @@
 package io.github.gitbucket.labelkanban.api
 
 import gitbucket.core.api.{ApiPath, FieldSerializable}
+import gitbucket.core.controller.Context
 import gitbucket.core.model.{Label, Milestone, Priority}
 import gitbucket.core.util.RepositoryName
 import gitbucket.core.view.helpers
@@ -47,12 +48,12 @@ object ApiLaneKanban {
       order = order
     )
 
-  def apply(userName: String, repositoryName: RepositoryName, order: Int): ApiLaneKanban =
+  def apply(userName: String, repositoryName: RepositoryName, order: Int)(implicit context :Context): ApiLaneKanban =
     ApiLaneKanban(
       id = userName,
       name = userName,
       color = KanbanHelpers.toColorString(userName),
-      iconImage = "",
+      iconImage = s"""${context.path}/${userName}/_avatar""",
       icon = "octicon octicon-person",
       htmlUrl = Some(ApiPath(s"/${repositoryName.fullName}/issues?assigned=${helpers.urlEncode(userName)}&state=open")),
       switchUrl = Some(ApiPath(s"/api/v3/repos/${repositoryName.fullName}/plugin/labelkanban/assignee/${userName}/switch/issue/")),

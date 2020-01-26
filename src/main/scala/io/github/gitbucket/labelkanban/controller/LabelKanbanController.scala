@@ -52,6 +52,7 @@ class LabelKanbanController extends labelKanbanControllerBase
   with WebHookService
   with MergeService
   with WebHookPullRequestReviewCommentService
+  with HandleCommentService
 
 trait labelKanbanControllerBase extends ControllerBase {
 
@@ -68,6 +69,7 @@ trait labelKanbanControllerBase extends ControllerBase {
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
+    with HandleCommentService
     with PrioritiesService =>
 
   val prefix = "@"
@@ -156,7 +158,17 @@ trait labelKanbanControllerBase extends ControllerBase {
       }
     } else Unauthorized()
   })
+  get("/api/v3/repos/:owner/:repository/plugin/labelkanban/issues/close/:iid")(readableUsersOnly { repository =>
+    if (repository.repository.options.issuesOption == "DISABLE")
+      notFound()
+    else if (isIssueEditable(repository)) {
+      val issueId = params("iid")
+      val owner = params("owner")
+      val issue = getIssue(owner, repository.name, issueId)
 
+      handleComment(issue.get, None, repository, Some("close"))
+    } else Unauthorized()
+  })
   get("/:owner/:repository/labelkanban/kanban.csv")(referrersOnly { repository =>
     val lanes = createLanes(repository)
     val issues = createApiIssueKanbans(repository)
@@ -455,7 +467,7 @@ trait labelKanbanControllerBase extends ControllerBase {
                 id = assignee,
                 name = assignee,
                 color = KanbanHelpers.toColorString(assignee),
-                iconImage = "",
+                iconImage = s"""${context.path}/${assignee}/_avatar""",
                 icon = "octicon octicon-person",
                 htmlUrl = None,
                 switchUrl = None,
@@ -464,7 +476,6 @@ trait labelKanbanControllerBase extends ControllerBase {
               )
             }
         )
-
       ,
       "Repositories" ->
         repositories

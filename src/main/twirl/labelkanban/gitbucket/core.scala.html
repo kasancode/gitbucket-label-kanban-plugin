@@ -129,12 +129,15 @@
                                 v-for="issue in getIssues(getIssues(issues, rowKey, rowLane), colKey, colLane)">
                                 <div class="kanban-issue-header panel-heading">
                                     <a v-bind:href="issue ? issue.htmlUrl : ''">{{issue.title}} <span class="text-muted">#{{issue.issueId}}</span></a>
-                                    <span class="kanban-expand-button pull-right text-muted" v-on:click="showComments(issue)">
-                                        <span v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'"></span>
+                                    <span class="kanban-expand-button pull-right text-muted kanban-icon" v-on:click="showComments(issue)">
+                                        <span v-bind:class="issue.show?'glyphicon glyphicon-chevron-up':'glyphicon glyphicon-chevron-down'" class="kanban-icon"></span>
                                     </span>
-                                    <span class="pull-right">
+                                    <span class="pull-right kanban-icon">
                                         <span v-for="(value, name) in issue.metrics">
-                                            <a v-if="value" v-bind:href="laneUrl(name,value)" v-bind:title="laneName(name,value)" data-toggle="tooltip">
+                                            <a v-if="laneImageUrl(name,value)" class="kanban-icon" v-bind:href="laneUrl(name,value)" v-bind:title="laneName(name,value)" data-toggle="tooltip">
+                                                <img v-bind:src="laneImageUrl(name,value)" class="avatar-mini kanban-avatar" />
+                                            </a>
+                                            <a v-if="value && !laneImageUrl(name,value)" class="kanban-icon" v-bind:href="laneUrl(name,value)" v-bind:title="laneName(name,value)" data-toggle="tooltip">
                                                 <i v-bind:class="iconClass(name,value)" v-bind:style="{color:iconColor(name,value)}"> </i>
                                             </a>
                                         </span>
@@ -147,6 +150,9 @@
                                         <div class="kanban-comment" v-if="issue.comments"
                                             v-for="comment in issue.comments">
                                             {{comment.body}}
+                                        </div>
+                                        <div v-if="closeIssuePath && !issue.isPullRequest" class="pull-right">
+                                            <span v-on:click="closeIssue(issue)" class="kanban-close btn-danger">Close</span>
                                         </div>
                                     </div>
                                 </transition-group>

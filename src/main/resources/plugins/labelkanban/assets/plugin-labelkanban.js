@@ -4,6 +4,7 @@ var apiBasepath;
 var basePath;
 var prefix;
 var addIssuePath;
+var closeIssuePath;
 
 const compactStyleIssuesCount = 10;
 const cookieMaxAge = 30; //day
@@ -47,6 +48,29 @@ if (!Array.prototype.find) {
     });
 }
 
+// https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
+if (!Array.prototype.findIndex) {
+    Array.prototype.findIndex = function(predicate) {
+      if (this === null) {
+        throw new TypeError('Array.prototype.findIndex called on null or undefined');
+      }
+      if (typeof predicate !== 'function') {
+        throw new TypeError('predicate must be a function');
+      }
+      var list = Object(this);
+      var length = list.length >>> 0;
+      var thisArg = arguments[1];
+      var value;
+  
+      for (var i = 0; i < length; i++) {
+        value = list[i];
+        if (predicate.call(thisArg, value, i, list)) {
+          return i;
+        }
+      }
+      return -1;
+    };
+  }
 
 function getCookie(name) {
     var cookieName = encodeURIComponent(name) + '=';
@@ -197,6 +221,16 @@ var kanbanApp = new Vue({
         laneUrl: function (key,value) {
             let lane = this.lanes[key].find(l => l.id === value);
             return lane ? lane.htmlUrl : "";
+        }
+        ,
+        /**
+         * @param {string} key
+         * @param {string} value
+         * @returns {string}
+         */
+        laneImageUrl: function (key,value) {
+            let lane = this.lanes[key].find(l => l.id === value);
+            return lane ? lane.iconImage : "";
         }
         ,
         /**
@@ -361,6 +395,26 @@ var kanbanApp = new Vue({
             if (colLane.paramKey)
                 url += colLane.paramKey + "=" + encodeURIComponent(colLane.id);
             return url;
+        }
+        ,
+                /**
+         * @param {issue} issue
+         */
+        closeIssue: function (issue) {
+            if (!closeIssuePath) return;
+
+            $.ajax({
+                url: closeIssuePath + issue.issueId,
+                dataType: 'json'
+            })
+                .done(function () {
+                    var index = this.issues.findIndex(i=>i.issueId == issue.issueId);
+                    if(index >= 0){
+                        this.issues.splice(index, 1);
+                        this.$forceUpdate();
+                    }
+                }.bind(this))
+                .fail(this.ajaxFail);
         }
         ,
         /**
@@ -571,6 +625,8 @@ $(function () {
 * @prop {string} switchUrl
 * @prop {string} paramKey
 * @prop {number} order
+* @prop {string} iconImage
+* @prop {string} icon
 */
 
 /**
