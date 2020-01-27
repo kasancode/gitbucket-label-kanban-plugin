@@ -189,7 +189,7 @@ var kanbanApp = new Vue({
          * @returns {string}
          */
         iconClass: function (key, value) {
-            let lane = this.lanes[key].find(l => l.id === value);
+            var lane = this.lanes[key].find(function(l){return l.id === value;});
             return lane ? lane.icon : "";
         }
         ,
@@ -199,7 +199,7 @@ var kanbanApp = new Vue({
          * @returns {string}
          */
         iconColor: function (key,value) {
-            let lane = this.lanes[key].find(l => l.id === value);
+            var lane = this.lanes[key].find(function(l){return l.id === value;});
             return lane ? "#" + lane.color : "#333333";
         }
         ,
@@ -209,7 +209,7 @@ var kanbanApp = new Vue({
          * @returns {string}
          */
         laneName: function (key,value) {
-            let lane = this.lanes[key].find(l => l.id === value);
+            var lane = this.lanes[key].find(function(l){return l.id === value;});
             return lane ? lane.name : "";
         }
         ,
@@ -219,7 +219,7 @@ var kanbanApp = new Vue({
          * @returns {string}
          */
         laneUrl: function (key,value) {
-            let lane = this.lanes[key].find(l => l.id === value);
+            var lane = this.lanes[key].find(function(l){return l.id === value;});
             return lane ? lane.htmlUrl : "";
         }
         ,
@@ -229,7 +229,7 @@ var kanbanApp = new Vue({
          * @returns {string}
          */
         laneImageUrl: function (key,value) {
-            let lane = this.lanes[key].find(l => l.id === value);
+            var lane = this.lanes[key].find(function(l){return l.id === value;});
             return lane ? lane.iconImage : "";
         }
         ,
@@ -408,7 +408,7 @@ var kanbanApp = new Vue({
                 dataType: 'json'
             })
                 .done(function () {
-                    var index = this.issues.findIndex(i=>i.issueId == issue.issueId);
+                    var index = this.issues.findIndex(function(i){return i.issueId === issue.issueId;});
                     if(index >= 0){
                         this.issues.splice(index, 1);
                         this.$forceUpdate();
