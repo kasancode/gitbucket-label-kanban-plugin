@@ -34,6 +34,7 @@ class Plugin extends gitbucket.core.plugin.Plugin {
     new Version("3.4.0"),
     new Version("3.4.1"),
     new Version("3.5.0"),
+    new Version("3.6.0"),
   )
 
   override val controllers = Seq(

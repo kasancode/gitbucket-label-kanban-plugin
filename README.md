@@ -15,7 +15,8 @@ Download jar file from [the release page](https://github.com/kasancode/gitbucket
 
 Plugin version|GitBucket version
 :---|:---
-3.3.x|4.32.x - 
+3.6.0 - |4.34.x - 
+3.3.0 - 3.5.0|4.32.x - 4.33.x
 3.0.x|4.26.x - 4.31.x
 2.0.x|4.26.x - 4.31.x
 1.0.x|4.26.x - 4.29.x

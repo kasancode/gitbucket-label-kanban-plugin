@@ -53,6 +53,8 @@ class LabelKanbanController extends labelKanbanControllerBase
   with MergeService
   with WebHookPullRequestReviewCommentService
   with HandleCommentService
+  with RequestCache
+
 
 trait labelKanbanControllerBase extends ControllerBase {
 
