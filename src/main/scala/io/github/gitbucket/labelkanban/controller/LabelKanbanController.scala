@@ -16,7 +16,7 @@ import gitbucket.core.util._
 import gitbucket.core.api._
 import gitbucket.core.util.Implicits._
 import io.github.gitbucket.labelkanban.api._
-import io.github.gitbucket.labelkanban.service.{LabelKanbanService,KanbanHelpers}
+import io.github.gitbucket.labelkanban.service.KanbanHelpers
 import org.scalatra.{Created, NotFound, UnprocessableEntity}
 import java.util.Date
 
@@ -33,7 +33,6 @@ import scala.collection.mutable
 case class kanbanOrder(id:String, order:Int)
 
 class LabelKanbanController extends labelKanbanControllerBase
-  with LabelKanbanService
   with IssuesService
   with RepositoryService
   with AccountService
@@ -58,8 +57,7 @@ class LabelKanbanController extends labelKanbanControllerBase
 
 trait labelKanbanControllerBase extends ControllerBase {
 
-  self: LabelKanbanService
-    with IssuesService
+  self: IssuesService
     with RepositoryService
     with AccountService
     with LabelsService
@@ -196,7 +194,7 @@ trait labelKanbanControllerBase extends ControllerBase {
         (r.repository.options.issuesOption != "DISABLE" &&
           groups.contains(r.owner) ||
           getCollaborators(r.owner, r.repository.repositoryName).exists(c => c._1.collaboratorName == user)) &&
-          countIssue(IssueSearchCondition(), false, (r.owner, r.repository.repositoryName)) > 0
+          countIssue(IssueSearchCondition(), IssueSearchOption.Issues, (r.owner, r.repository.repositoryName)) > 0
       )
 
     JsonFormat(
@@ -583,7 +581,7 @@ trait labelKanbanControllerBase extends ControllerBase {
         (r.repository.options.issuesOption != "DISABLE" &&
           groups.contains(r.owner) ||
           getCollaborators(r.owner, r.repository.repositoryName).exists(c => c._1.collaboratorName == user)) &&
-          countIssue(IssueSearchCondition(), false, (r.owner, r.repository.repositoryName)) > 0
+          countIssue(IssueSearchCondition(), IssueSearchOption.Issues, (r.owner, r.repository.repositoryName)) > 0
       )
   }
 
