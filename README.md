@@ -1,5 +1,5 @@
 # gitbucket-label-kanban-plugin
-[![Build Status](https://travis-ci.org/kasancode/gitbucket-label-kanban-plugin.svg?branch=master)](https://travis-ci.org/kasancode/gitbucket-label-kanban-plugin)
+[![Scala CI](https://github.com/kasancode/gitbucket-label-kanban-plugin/actions/workflows/scala.yml/badge.svg)](https://github.com/kasancode/gitbucket-label-kanban-plugin/actions/workflows/scala.yml)
 
 A [GitBucket](https://github.com/gitbucket/gitbucket) plugin for Kanban-style issue management.
 The lanes are labels prefixed with "@", milestones, priorities and assignees.
