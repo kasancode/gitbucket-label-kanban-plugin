@@ -1,33 +1,22 @@
 package io.github.gitbucket.labelkanban.controller
 
-import labelkanban.gitbucket.html
-
-import java.nio.charset.StandardCharsets
-import gitbucket.core.service.IssuesService._
-import gitbucket.core.service._
-import gitbucket.core.util.SyntaxSugars._
-import gitbucket.core.util.Implicits._
-import gitbucket.core.util._
-import gitbucket.core.view
-import gitbucket.core.view.Markdown
+import gitbucket.core.api._
 import gitbucket.core.controller.ControllerBase
+import gitbucket.core.model.{Label, Priority}
+import gitbucket.core.service.IssuesService._
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service._
-import gitbucket.core.util._
-import gitbucket.core.api._
 import gitbucket.core.util.Implicits._
+import gitbucket.core.util.SyntaxSugars.defining
+import gitbucket.core.util._
 import io.github.gitbucket.labelkanban.api._
 import io.github.gitbucket.labelkanban.service.KanbanHelpers
-import org.scalatra.{Created, NotFound, UnprocessableEntity}
-
-import java.util.Date
-import org.scalatra.util.UrlCodingUtils._
-import gitbucket.core.model.{Issue, IssueAssignee, Label, Milestone, Priority}
-import gitbucket.core.service.IssuesService._
-import gitbucket.core.util.SyntaxSugars.defining
+import labelkanban.gitbucket.html
 import org.apache.commons.io.ByteOrderMark
-import org.scalatra.util
+import org.scalatra.util.UrlCodingUtils._
 
+import java.nio.charset.StandardCharsets
+import java.util.Date
 import scala.collection.mutable
 
 case class kanbanOrder(id:String, order:Int)
@@ -40,6 +29,7 @@ class LabelKanbanController extends labelKanbanControllerBase
   with MilestonesService
   with ActivityService
   with IssueCreationService
+  with CustomFieldsService
   with WebHookIssueCommentService
   with WebHookPullRequestService
   with ReadableUsersAuthenticator
@@ -64,6 +54,7 @@ trait labelKanbanControllerBase extends ControllerBase {
     with MilestonesService
     with ActivityService
     with IssueCreationService
+    with CustomFieldsService
     with WebHookIssueCommentService
     with WebHookPullRequestService
     with ReadableUsersAuthenticator
@@ -154,7 +145,7 @@ trait labelKanbanControllerBase extends ControllerBase {
             milestoneId,
             priorityId,
             labelIds,
-            Nil
+            getCustomFields(repository.owner, repository.name).filter(_.enableForIssues).map((_, None))
           )
       }
     } else Unauthorized()
@@ -211,7 +202,7 @@ trait labelKanbanControllerBase extends ControllerBase {
       getOpenIssues(repository.owner, repository.name).map(issue =>
         ApiIssueKanban(
           issue,
-          getAssignableUserNames(repository.owner, repository.name).headOption,
+          getIssueAssignees(repository.owner, repository.name, issue.issueId).headOption.map(_.assigneeUserName),
           getIssueLabels(repository.owner, repository.name, issue.issueId),
           prefix,
           RepositoryName(repository)
@@ -291,11 +282,12 @@ trait labelKanbanControllerBase extends ControllerBase {
       case _ => None
     }
 
-    deleteAllIssueAssignees(repository.owner, repository.name, issueId, true)
+    getIssueAssignees(repository.owner, repository.name, issueId).foreach(a =>
+      deleteIssueAssignee(repository.owner, repository.name, issueId, a.assigneeUserName, true))
+
     if(assignee.isDefined){
       registerIssueAssignee(repository.owner, repository.name, issueId, assignee.getOrElse(""), true)
     }
-    // updateAssignedUserName(repository.owner, repository.name, issueId, assignee, true)
 
     getApiIssue(issueId, repository)
   })
@@ -507,7 +499,7 @@ trait labelKanbanControllerBase extends ControllerBase {
     JsonFormat(
       ApiIssueKanban(
         issue,
-        getAssignableUserNames(repository.owner, repository.name).headOption,
+        getIssueAssignees(repository.owner, repository.name, issue.issueId).headOption.map(_.assigneeUserName),
         getIssueLabels(repository.owner, repository.name, issue.issueId),
         prefix,
         RepositoryName(repository)
@@ -573,7 +565,7 @@ trait labelKanbanControllerBase extends ControllerBase {
       .map(issue =>
         ApiIssueKanban(
           issue,
-          getAssignableUserNames(repository.owner, repository.name).headOption,
+          getIssueAssignees(repository.owner, repository.name, issue.issueId).headOption.map(_.assigneeUserName),
           getIssueLabels(repository.owner, repository.name, issue.issueId),
           prefix,
           RepositoryName(repository)
@@ -602,7 +594,7 @@ trait labelKanbanControllerBase extends ControllerBase {
           .map(issue =>
             ApiIssueKanban.applySummary(
               issue,
-              getAssignableUserNames(repository.owner, repository.name).headOption,
+              getIssueAssignees(repository.owner, repository.name, issue.issueId).headOption.map(_.assigneeUserName),
               getIssueLabels(repository.owner, repository.name, issue.issueId),
               prefix,
               getPriorities(repository.owner, repository.name)
