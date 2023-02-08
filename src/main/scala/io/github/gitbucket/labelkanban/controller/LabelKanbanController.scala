@@ -7,7 +7,6 @@ import gitbucket.core.service.IssuesService._
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.SyntaxSugars.defining
 import gitbucket.core.util._
 import io.github.gitbucket.labelkanban.api._
 import io.github.gitbucket.labelkanban.service.KanbanHelpers
@@ -132,24 +131,21 @@ trait labelKanbanControllerBase extends ControllerBase {
       val priorityId = params.get("priority")
       val assigneeName = params.get("assignee")
 
-      defining(repository.owner, repository.name) {
-        case (owner, name) =>
-          html.newissue(
-            getAssignableUserNames(owner, name),
-            getMilestones(owner, name),
-            getPriorities(owner, name),
-            getDefaultPriority(owner, name),
-            getLabels(owner, name),
-            isIssueManageable(repository),
-            getContentTemplate(repository, "ISSUE_TEMPLATE"),
-            repository,
-            assigneeName,
-            milestoneId,
-            priorityId,
-            labelIds,
-            getCustomFields(repository.owner, repository.name).filter(_.enableForIssues).map((_, None))
-          )
-      }
+      html.newissue(
+        getAssignableUserNames(repository.owner, repository.name),
+        getMilestones(repository.owner, repository.name),
+        getPriorities(repository.owner, repository.name),
+        getDefaultPriority(repository.owner, repository.name),
+        getLabels(repository.owner, repository.name),
+        isIssueManageable(repository),
+        getContentTemplate(repository, "ISSUE_TEMPLATE"),
+        repository,
+        assigneeName,
+        milestoneId,
+        priorityId,
+        labelIds,
+        getCustomFields(repository.owner, repository.name).filter(_.enableForIssues).map((_, None))
+      )
     } else Unauthorized()
   })
   get("/api/v3/repos/:owner/:repository/plugin/labelkanban/issues/close/:iid")(readableUsersOnly { repository =>
