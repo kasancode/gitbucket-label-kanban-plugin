@@ -43,10 +43,23 @@ var LabelKanbanPlugin = {
     }
     ,
     setupAssignee: function (name) {
-        var $element = $('a.assign[data-name="' + name + '"]');
-        var userName = $element.data('name');
-        this.displayAssignee($element, userName);
-        $('input[name=assignedUserName]').val(userName);
+      $element = $('a.toggle-assign[data-name="' + name + '"]');
+
+      const i = $element.children('i');
+      if(i.hasClass('octicon-check')){
+        i.removeClass('octicon-check');
+      } else {
+        i.addClass('octicon-check');
+      }
+
+      const assignees = Array();
+      $('a.toggle-assign').each(function(i, e){
+        if($(e).children('i').hasClass('octicon-check') == true){
+          assignees.push($(e).text().trim());
+        }
+      });
+      $('input[name=assigneeUserNames]').val(assignees.join(','));
+      this.displayAssignee(assignees);
     }
     ,
     switchLabel: function ($this) {
@@ -92,15 +105,18 @@ var LabelKanbanPlugin = {
         }
     }
     ,
-    displayAssignee: function ($this, userName) {
-        $('a.assign i.octicon-check').removeClass('octicon-check');
-        if (userName == '') {
-            $('#label-assigned').html($('<span class="muted small">').text('No one'));
-        } else {
-            $('#label-assigned').empty()
-                .append($this.find('img.avatar-mini').clone(false)).append(' ')
-                .append($('<a class="username strong small">').attr('href', '/' + userName).text(userName));
-            $('a.assign[data-name=' + jqSelectorEscape(userName) + '] i').addClass('octicon-check');
+    displayAssignee: function (assignees) {
+      $('a.assign i.octicon-check').removeClass('octicon-check');
+      if(assignees.length == 0){
+        $('#label-assigned').html($('<span class="muted small">').text('No one assigned'));
+      } else {
+        $('#label-assigned').empty();
+        for (const userName of assignees) {
+          $('#label-assigned').append($('<div>').append(
+              $('a.toggle-assign').parent().find("img.avatar-mini[alt='@" + userName + "']").clone(false),
+              ' ',
+              $('<a class="username strong small">').attr('href', '/' + userName).text(userName)));
         }
+      }
     }
 };

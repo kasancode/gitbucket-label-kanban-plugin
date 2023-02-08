@@ -1,6 +1,7 @@
 package io.github.gitbucket.labelkanban.controller
 
 import labelkanban.gitbucket.html
+
 import java.nio.charset.StandardCharsets
 import gitbucket.core.service.IssuesService._
 import gitbucket.core.service._
@@ -18,11 +19,10 @@ import gitbucket.core.util.Implicits._
 import io.github.gitbucket.labelkanban.api._
 import io.github.gitbucket.labelkanban.service.KanbanHelpers
 import org.scalatra.{Created, NotFound, UnprocessableEntity}
-import java.util.Date
 
-import org.json4s._
+import java.util.Date
 import org.scalatra.util.UrlCodingUtils._
-import gitbucket.core.model.{Issue, Label, Milestone, Priority}
+import gitbucket.core.model.{Issue, IssueAssignee, Label, Milestone, Priority}
 import gitbucket.core.service.IssuesService._
 import gitbucket.core.util.SyntaxSugars.defining
 import org.apache.commons.io.ByteOrderMark
@@ -153,7 +153,8 @@ trait labelKanbanControllerBase extends ControllerBase {
             assigneeName,
             milestoneId,
             priorityId,
-            labelIds
+            labelIds,
+            Nil
           )
       }
     } else Unauthorized()
@@ -210,6 +211,7 @@ trait labelKanbanControllerBase extends ControllerBase {
       getOpenIssues(repository.owner, repository.name).map(issue =>
         ApiIssueKanban(
           issue,
+          getAssignableUserNames(repository.owner, repository.name).headOption,
           getIssueLabels(repository.owner, repository.name, issue.issueId),
           prefix,
           RepositoryName(repository)
@@ -289,7 +291,11 @@ trait labelKanbanControllerBase extends ControllerBase {
       case _ => None
     }
 
-    updateAssignedUserName(repository.owner, repository.name, issueId, assignee, true)
+    deleteAllIssueAssignees(repository.owner, repository.name, issueId, true)
+    if(assignee.isDefined){
+      registerIssueAssignee(repository.owner, repository.name, issueId, assignee.getOrElse(""), true)
+    }
+    // updateAssignedUserName(repository.owner, repository.name, issueId, assignee, true)
 
     getApiIssue(issueId, repository)
   })
@@ -501,6 +507,7 @@ trait labelKanbanControllerBase extends ControllerBase {
     JsonFormat(
       ApiIssueKanban(
         issue,
+        getAssignableUserNames(repository.owner, repository.name).headOption,
         getIssueLabels(repository.owner, repository.name, issue.issueId),
         prefix,
         RepositoryName(repository)
@@ -539,8 +546,8 @@ trait labelKanbanControllerBase extends ControllerBase {
     val rowOrderStr = urlDecode(cookies.get("kanban.order." + rowKeyEnc).getOrElse("[]"))
     val colOrderStr = urlDecode(cookies.get("kanban.order." + colKeyEnc).getOrElse("[]"))
 
-    val rowOrders = jackson.parseJson(rowOrderStr).extract[List[kanbanOrder]]
-    val colOrders = jackson.parseJson(colOrderStr).extract[List[kanbanOrder]]
+    val rowOrders = org.json4s.jackson.parseJson(rowOrderStr).extract[List[kanbanOrder]]
+    val colOrders = org.json4s.jackson.parseJson(colOrderStr).extract[List[kanbanOrder]]
 
     var csv = "\"" + rowKey.replace("\"", "\"\"") + "/" + colKey.replace("\"", "\"\"") + "\",\"" + colOrders
       .map(c => toLaneName(laneMap(colKey), c.id))
@@ -566,6 +573,7 @@ trait labelKanbanControllerBase extends ControllerBase {
       .map(issue =>
         ApiIssueKanban(
           issue,
+          getAssignableUserNames(repository.owner, repository.name).headOption,
           getIssueLabels(repository.owner, repository.name, issue.issueId),
           prefix,
           RepositoryName(repository)
@@ -594,6 +602,7 @@ trait labelKanbanControllerBase extends ControllerBase {
           .map(issue =>
             ApiIssueKanban.applySummary(
               issue,
+              getAssignableUserNames(repository.owner, repository.name).headOption,
               getIssueLabels(repository.owner, repository.name, issue.issueId),
               prefix,
               getPriorities(repository.owner, repository.name)

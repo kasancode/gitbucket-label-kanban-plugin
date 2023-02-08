@@ -1,9 +1,9 @@
 package io.github.gitbucket.labelkanban.api
 
 import java.util.Date
-
 import gitbucket.core.api._
-import gitbucket.core.model.{Issue, Label, Priority}
+import gitbucket.core.model.{Issue, IssueAssignee, Label, Priority}
+import gitbucket.core.service.IssuesService
 import gitbucket.core.util.RepositoryName
 import gitbucket.core.view.helpers
 
@@ -33,14 +33,14 @@ case class ApiIssueKanban(
 
 
 object ApiIssueKanban {
-  def apply(issue: Issue, labels: List[Label], prefix: String, repositoryName: RepositoryName): ApiIssueKanban =
+  def apply(issue: Issue,assignedUserName: Option[String], labels: List[Label], prefix: String, repositoryName: RepositoryName): ApiIssueKanban =
     ApiIssueKanban(
       userName = issue.userName,
       issueId = issue.issueId,
       openedUserName = issue.openedUserName,
       milestoneId = issue.milestoneId.getOrElse(-1),
       priorityId = issue.priorityId.getOrElse(-1),
-      assignedUserName = issue.assignedUserName.getOrElse(""),
+      assignedUserName = assignedUserName.getOrElse(""),
       title = issue.title,
       content = issue.content.getOrElse(""),
       closed = issue.closed,
@@ -51,20 +51,20 @@ object ApiIssueKanban {
       metrics = createMetrics(
         milestoneId = issue.milestoneId,
         priorityId = issue.priorityId,
-        assignedUserName = issue.assignedUserName,
+        assignedUserName = assignedUserName,
         labels = labels,
         prefix
       )
     )(repositoryName)
 
-  def applySummary(issue: Issue, labels: List[Label], prefix: String, priorities: List[Priority]): ApiIssueKanban =
+  def applySummary(issue: Issue, assignedUserName: Option[String], labels: List[Label], prefix: String, priorities: List[Priority]): ApiIssueKanban =
     ApiIssueKanban(
       userName = issue.userName,
       issueId = issue.issueId,
       openedUserName = issue.openedUserName,
       milestoneId = issue.milestoneId.getOrElse(-1),
       priorityId = issue.priorityId.getOrElse(-1),
-      assignedUserName = issue.assignedUserName.getOrElse(""),
+      assignedUserName = assignedUserName.getOrElse(""),
       title = issue.title,
       content = issue.content.getOrElse(""),
       closed = issue.closed,
@@ -76,7 +76,7 @@ object ApiIssueKanban {
         labels = labels,
         prefix,
         priority = priorities.find(p => p.priorityId == issue.priorityId.getOrElse(-1)),
-        issue.assignedUserName,
+        assignedUserName,
         repository = issue.repositoryName
       )
     )(RepositoryName(issue.userName, issue.repositoryName))

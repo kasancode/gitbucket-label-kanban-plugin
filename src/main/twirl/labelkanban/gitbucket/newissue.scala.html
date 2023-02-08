@@ -9,7 +9,9 @@ repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
 assigneeName: Option[String],
 milestoneId: Option[String],
 priorityId: Option[String],
-labelIds: Seq[String])(implicit context: gitbucket.core.controller.Context)
+labelIds: Seq[String],
+customFields: List[(gitbucket.core.model.CustomField, Option[gitbucket.core.model.IssueCustomField])]
+)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 
 @gitbucket.core.html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
@@ -36,7 +38,7 @@ labelIds: Seq[String])(implicit context: gitbucket.core.controller.Context)
             </div>
         </div>
         <div class="col-md-3">
-            @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), priorities, defaultPriority, labels, isManageable, repository)
+            @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), priorities, defaultPriority, labels, customFields, isManageable, repository)
         </div>
     </div>
 </form>
